@@ -24,6 +24,8 @@ ml_etl/
 │   ├── etl/           # ETL process code
 │   ├── ml/            # ML model training and API code
 │   └── main.py        # Main orchestration script
+├── train_ml_model.sh  # Script to run ETL and train ML model
+├── host_ml_model.sh   # Script to host the ML model API
 └── requirements.txt   # Python dependencies
 ```
 
@@ -47,7 +49,54 @@ ml_etl/
 
 ## Usage
 
-### Running the ETL Process
+### Using the Convenience Scripts
+
+Two shell scripts are provided for easier usage:
+
+#### 1. `train_ml_model.sh` - ETL and ML Training
+
+This script handles the data extraction, transformation, loading (ETL) and model training processes:
+
+```
+./ml_etl/train_ml_model.sh
+```
+
+This will:
+- Set up the Python environment
+- Initialize the database with sample data
+- Run the ETL process to prepare data for training
+- Train the ML model
+- Save the model to the models directory
+
+Use this script when you want to:
+- Initialize or refresh the database
+- Process new data for training
+- Train or retrain the ML model
+
+#### 2. `host_ml_model.sh` - Model Hosting
+
+This script starts the API server to host the latest trained model:
+
+```
+./ml_etl/host_ml_model.sh
+```
+
+This will:
+- Verify that the model exists
+- Set up the Python environment
+- Start the ML API server in the foreground
+- Serve prediction requests for tax refund processing times
+
+Use this script when you want to:
+- Host the ML model for inference
+- Make the API available for prediction requests
+- Test the model with new data
+
+### Using Python Directly
+
+If you need more control, you can use the Python script directly:
+
+#### Running the ETL Process
 
 ```
 python src/main.py --mode etl
@@ -58,7 +107,7 @@ This will:
 - Transform it to calculate statistics
 - Load it into the offline database
 
-### Training the ML Model
+#### Training the ML Model
 
 ```
 python src/main.py --mode train
@@ -69,7 +118,7 @@ This will:
 - Train a machine learning model
 - Save the trained model to the models directory
 
-### Starting the API Service
+#### Starting the API Service
 
 ```
 python src/main.py --mode api
@@ -79,7 +128,7 @@ This will:
 - Load the trained model
 - Start a FastAPI server to serve predictions
 
-### Running the Complete Pipeline
+#### Running the Complete Pipeline
 
 ```
 python src/main.py --mode all
@@ -87,7 +136,7 @@ python src/main.py --mode all
 
 This will run the ETL process, train the model, and start the API service.
 
-### Scheduling the Pipeline
+#### Scheduling the Pipeline
 
 ```
 python src/main.py --schedule --interval 24

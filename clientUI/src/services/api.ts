@@ -40,19 +40,11 @@ export const getRefundStatusHistory = async (taxFileId: string): Promise<TaxProc
   }
 };
 
-export const authenticateUser = async (ssn: string): Promise<string | null> => {
-  try {
-    const response = await api.post<{ userId: string }>('/users/auth', { ssn });
-    return response.data.userId;
-  } catch (error) {
-    console.error('Error authenticating user:', error);
-    return null;
-  }
-};
 
-export default {
+const apiService = {
   getTaxFilings,
   getRefundStatus,
   getRefundStatusHistory,
-  authenticateUser,
 };
+
+export default apiService;

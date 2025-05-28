@@ -9,6 +9,5 @@ router.get('/refund-status/:taxFileId/history', refundStatusController.getRefund
 
 // User routes
 router.get('/users/:userId/tax-filings', refundStatusController.getTaxFilings);
-router.post('/users/auth', refundStatusController.authenticateUser);
 
 export default router;

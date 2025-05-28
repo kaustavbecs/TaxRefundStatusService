@@ -1,79 +1,14 @@
 # Tax Refund Status Service
 
-A full-stack application for checking tax refund status and estimating refund availability time.
+A Sample full-stack application for checking tax refund status and estimating refund availability time.
 
-## Project Structure
+## Overview
 
 This project consists of three main components:
 
-1. **Service**: A backend API service built with Node.js, Express, and TypeScript that provides tax refund status information and predictions.
-2. **Client UI**: A frontend application built with React and TypeScript that resembles TurboTax's interface for displaying tax refund status.
-3. **ML & ETL**: A Python-based machine learning and ETL pipeline that processes tax refund data and provides predictions for refund processing times.
-
-## Service
-
-The service component provides an API for:
-- Checking the status of tax refunds
-- Viewing the history of status updates
-- Estimating the time for refund availability
-
-### Technologies Used
-
-- Node.js
-- Express
-- TypeScript
-- SQLite
-- RESTful API design
-
-### Key Features
-
-- Tax refund status API
-- Status history tracking
-- Refund availability prediction
-- SQLite database for data storage
-
-## Client UI
-
-The client UI component provides a user interface that resembles TurboTax for:
-- Viewing tax filings
-- Checking the status of tax refunds
-- Viewing the history of status updates
-- Seeing estimated time for refund availability
-
-### Technologies Used
-
-- React
-- TypeScript
-- Styled Components
-- Axios for API communication
-
-### Key Features
-
-- TurboTax-like interface
-- Tax filing selection
-- Refund status display
-- Status history timeline
-
-## ML & ETL
-
-The ML & ETL component provides:
-- ETL process to transform online data into an analytics format
-- Machine learning model for predicting tax refund processing times
-- API for serving predictions
-
-### Technologies Used
-
-- Python
-- pandas, NumPy, scikit-learn
-- FastAPI
-- SQLite
-
-### Key Features
-
-- Data extraction from online database
-- Statistical analysis of processing times
-- Machine learning model training
-- API for serving predictions
+1. **Service**: A backend API service built with Node.js/Express that provides tax refund status information and predictions.
+2. **Client UI**: A React frontend application that resembles TurboTax's interface for displaying tax refund status.
+3. **ML & ETL**: A Python-based machine learning pipeline that processes tax data and predicts refund processing times.
 
 ## Getting Started
 
@@ -81,76 +16,18 @@ The ML & ETL component provides:
 
 - Node.js (v14 or higher)
 - npm (v6 or higher)
+- Python 3.8+ (for ML & ETL)
 
-### Installation
+### Documentation
 
-1. Clone the repository
-2. Install service dependencies:
-   ```
-   cd service
-   npm install
-   ```
-3. Install client UI dependencies:
-   ```
-   cd clientUI
-   npm install
-   ```
+Each component has its own detailed documentation:
 
-### Running the Application
+- **Backend Service**: [service/README.md](service/README.md)
+- **Frontend Client**: [clientUI/README.md](clientUI/README.md)
+- **ML & ETL Pipeline**: [ml_etl/README.md](ml_etl/README.md)
 
-1. Start the service:
-   ```
-   cd service
-   npm run init-db  # Initialize the database with sample data
-   npm run dev      # Start the service in development mode
-   ```
+Please refer to these component-specific READMEs for installation instructions, usage details, and API documentation.
 
-2. Start the client UI:
-   ```
-   cd clientUI
-   npm start
-   ```
-
-3. Start the ML services:
-   ```
-   ./start_ml_services.sh
-   ```
-
-4. Access the application at http://localhost:3000
-
-## API Endpoints
-
-### Authentication
-
-```
-POST /api/users/auth
-```
-
-### Get Tax Filings
-
-```
-GET /api/users/:userId/tax-filings
-```
-
-### Get Refund Status
-
-```
-GET /api/refund-status/:taxFileId
-```
-
-### Get Refund Status History
-
-```
-GET /api/refund-status/:taxFileId/history
-```
-
-## Future Enhancements
-
-- Integration with a real ML model for more accurate predictions
-- User authentication with JWT
-- Real-time status updates
-- Email/SMS notifications
-- Mobile app version
 
 ## Project Structure
 
@@ -158,33 +35,23 @@ GET /api/refund-status/:taxFileId/history
 /
 ├── service/                  # Backend service
 │   ├── src/                  # Source code
-│   │   ├── controllers/      # API controllers
-│   │   ├── db/               # Database services
-│   │   ├── routes/           # API routes
-│   │   ├── services/         # Business logic services
-│   │   └── server.ts         # Main server file
 │   ├── db/                   # Database files
-│   │   ├── schema.sql        # Database schema
-│   │   └── sample_data.sql   # Sample data
 │   └── README.md             # Service documentation
 │
 ├── clientUI/                 # Frontend client
 │   ├── src/                  # Source code
-│   │   ├── components/       # React components
-│   │   ├── services/         # API services
-│   │   ├── styles/           # CSS styles
-│   │   ├── types/            # TypeScript types
-│   │   └── App.tsx           # Main application component
 │   └── README.md             # Client documentation
 │
 ├── ml_etl/                   # ML & ETL pipeline
 │   ├── src/                  # Source code
-│   │   ├── etl/              # ETL process code
-│   │   ├── ml/               # ML model training and API code
-│   │   └── main.py           # Main orchestration script
 │   ├── data/                 # Data files
 │   ├── models/               # Trained ML models
 │   └── README.md             # ML & ETL documentation
 │
-├── start_ml_services.sh      # Script to start ML services
 └── README.md                 # Main project documentation
+```
+
+## Future Enhancements
+
+- User authentication with JWT
+- Real-time status updates

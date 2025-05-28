@@ -133,6 +133,7 @@ const UserDashboard: React.FC = () => {
     setSelectedTaxFileId(e.target.value);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getSelectedTaxFiling = () => {
     return taxFilings.find(filing => filing.TaxFileID === selectedTaxFileId);
   };
@@ -184,9 +185,13 @@ const UserDashboard: React.FC = () => {
       <Footer>
         <FooterContent>
           <FooterLinks>
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a href="#">Privacy</a>
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a href="#">Terms</a>
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a href="#">Help</a>
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a href="#">Contact</a>
           </FooterLinks>
           <FooterCopyright>

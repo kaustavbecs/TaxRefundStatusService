@@ -17,7 +17,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
 // Types
 export interface User {
   UserID: string;
-  SSN: string;
   CreatedAt: string;
   UpdatedAt: string;
 }
@@ -112,18 +111,6 @@ class DbService {
     });
   }
 
-  // Get user by SSN
-  getUserBySSN(ssn: string): Promise<User | null> {
-    return new Promise((resolve, reject) => {
-      db.get('SELECT * FROM Users WHERE SSN = ?', [ssn], (err, row) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(row as User || null);
-      });
-    });
-  }
 
   // Get tax files by user ID
   getTaxFilesByUserId(userId: string): Promise<TaxFile[]> {

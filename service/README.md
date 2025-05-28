@@ -45,26 +45,6 @@ npm start
 
 ## API Endpoints
 
-### Authentication
-
-```
-POST /api/users/auth
-```
-
-Request body:
-```json
-{
-  "ssn": "encrypted-ssn-001"
-}
-```
-
-Response:
-```json
-{
-  "userId": "user-001"
-}
-```
-
 ### Get Tax Filings
 
 ```

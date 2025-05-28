@@ -79,34 +79,6 @@ class RefundStatusController {
     }
   }
 
-  /**
-   * Get user by SSN (for authentication)
-   * POST /api/users/auth
-   */
-  async authenticateUser(req: Request, res: Response): Promise<void> {
-    try {
-      const { ssn } = req.body;
-
-      if (!ssn) {
-        res.status(400).json({ error: 'SSN is required' });
-        return;
-      }
-
-      const user = await dbService.getUserBySSN(ssn);
-
-      if (!user) {
-        res.status(404).json({ error: 'User not found' });
-        return;
-      }
-
-      // In a real application, we would use proper authentication
-      // For this demo, we just return the user ID
-      res.status(200).json({ userId: user.UserID });
-    } catch (error) {
-      console.error('Error in authenticateUser controller:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
 }
 
 export default new RefundStatusController();

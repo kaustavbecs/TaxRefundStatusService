@@ -1,0 +1,77 @@
+2025-05-28 15:56:28,036 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-28 15:56:30,306 - src.ml.model_api - INFO - Checking for processes using port 9090
+2025-05-28 15:56:30,353 - src.ml.model_api - INFO - Killed any processes using port 9090
+2025-05-28 15:56:30,354 - src.ml.model_api - INFO - Starting API server on port 9090
+2025-05-28 15:56:30,367 - src.ml.model_api - INFO - Loading latest model from /Users/kd/code/TaxRefundStatusService/ml_etl/models/refund_prediction_model_latest.joblib
+2025-05-28 15:56:30,407 - src.ml.model_api - INFO - Loading latest model metadata from /Users/kd/code/TaxRefundStatusService/ml_etl/models/model_metadata_latest.json
+2025-05-28 15:56:30,407 - src.ml.model_api - INFO - Successfully loaded latest model (v4)
+2025-05-28 15:57:09,002 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-28 15:57:09,003 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-28 15:57:09,003 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-28 15:57:09,003 - src.ml.model_api - INFO -   RefundAmountBucket: 1000-3000
+2025-05-28 15:57:09,003 - src.ml.model_api - INFO -   GeographicRegion: West
+2025-05-28 15:57:09,003 - src.ml.model_api - INFO -   ProcessingCenter: West Center
+2025-05-28 15:57:09,003 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-28 15:57:09,003 - src.ml.model_api - INFO -   SampleSize: 100
+2025-05-28 15:57:09,003 - src.ml.model_api - INFO -   SuccessRate: 0.9
+2025-05-28 15:57:09,015 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-28 15:57:09,016 - src.ml.model_api - INFO -   Estimated Days: 19
+2025-05-28 15:57:09,016 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-28 15:57:09,016 - src.ml.model_api - INFO -   Predicted Date: 2025-06-16
+2025-05-28 15:57:09,016 - src.ml.model_api - INFO -   Model Version: v4
+2025-05-28 15:57:09,022 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-28 15:57:09,022 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-28 15:57:09,022 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-28 15:57:09,022 - src.ml.model_api - INFO -   RefundAmountBucket: 1000-3000
+2025-05-28 15:57:09,022 - src.ml.model_api - INFO -   GeographicRegion: West
+2025-05-28 15:57:09,022 - src.ml.model_api - INFO -   ProcessingCenter: West Center
+2025-05-28 15:57:09,022 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-28 15:57:09,022 - src.ml.model_api - INFO -   SampleSize: 100
+2025-05-28 15:57:09,022 - src.ml.model_api - INFO -   SuccessRate: 0.9
+2025-05-28 15:57:09,028 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-28 15:57:09,028 - src.ml.model_api - INFO -   Estimated Days: 19
+2025-05-28 15:57:09,028 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-28 15:57:09,028 - src.ml.model_api - INFO -   Predicted Date: 2025-06-16
+2025-05-28 15:57:09,028 - src.ml.model_api - INFO -   Model Version: v4
+2025-05-28 15:57:40,233 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-28 15:57:40,234 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-28 15:57:40,234 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-28 15:57:40,234 - src.ml.model_api - INFO -   RefundAmountBucket: 1000-3000
+2025-05-28 15:57:40,234 - src.ml.model_api - INFO -   GeographicRegion: Northeast
+2025-05-28 15:57:40,234 - src.ml.model_api - INFO -   ProcessingCenter: Northeast Center
+2025-05-28 15:57:40,234 - src.ml.model_api - INFO -   FilingPeriod: Early
+2025-05-28 15:57:40,234 - src.ml.model_api - INFO -   SampleSize: 100
+2025-05-28 15:57:40,234 - src.ml.model_api - INFO -   SuccessRate: 0.9
+2025-05-28 15:57:40,241 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-28 15:57:40,241 - src.ml.model_api - INFO -   Estimated Days: 19
+2025-05-28 15:57:40,241 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-28 15:57:40,241 - src.ml.model_api - INFO -   Predicted Date: 2025-06-16
+2025-05-28 15:57:40,241 - src.ml.model_api - INFO -   Model Version: v4
+2025-05-28 15:58:13,413 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-28 15:58:13,414 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-28 15:58:13,414 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-28 15:58:13,414 - src.ml.model_api - INFO -   RefundAmountBucket: 1000-3000
+2025-05-28 15:58:13,414 - src.ml.model_api - INFO -   GeographicRegion: West
+2025-05-28 15:58:13,414 - src.ml.model_api - INFO -   ProcessingCenter: West Center
+2025-05-28 15:58:13,414 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-28 15:58:13,414 - src.ml.model_api - INFO -   SampleSize: 100
+2025-05-28 15:58:13,414 - src.ml.model_api - INFO -   SuccessRate: 0.9
+2025-05-28 15:58:13,428 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-28 15:58:13,428 - src.ml.model_api - INFO -   Estimated Days: 19
+2025-05-28 15:58:13,428 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-28 15:58:13,428 - src.ml.model_api - INFO -   Predicted Date: 2025-06-16
+2025-05-28 15:58:13,428 - src.ml.model_api - INFO -   Model Version: v4
+2025-05-28 15:58:13,434 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-28 15:58:13,434 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-28 15:58:13,434 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-28 15:58:13,434 - src.ml.model_api - INFO -   RefundAmountBucket: 1000-3000
+2025-05-28 15:58:13,434 - src.ml.model_api - INFO -   GeographicRegion: West
+2025-05-28 15:58:13,434 - src.ml.model_api - INFO -   ProcessingCenter: West Center
+2025-05-28 15:58:13,434 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-28 15:58:13,434 - src.ml.model_api - INFO -   SampleSize: 100
+2025-05-28 15:58:13,434 - src.ml.model_api - INFO -   SuccessRate: 0.9
+2025-05-28 15:58:13,441 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-28 15:58:13,441 - src.ml.model_api - INFO -   Estimated Days: 19
+2025-05-28 15:58:13,441 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-28 15:58:13,441 - src.ml.model_api - INFO -   Predicted Date: 2025-06-16
+2025-05-28 15:58:13,441 - src.ml.model_api - INFO -   Model Version: v4

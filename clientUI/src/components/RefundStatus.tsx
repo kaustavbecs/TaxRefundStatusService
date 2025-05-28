@@ -204,8 +204,8 @@ const RefundStatus: React.FC<RefundStatusProps> = ({ taxFileId }) => {
     return (
       <StatusContainer>
         <StatusHeader>
-          <StatusIcon status="Not Found">
-            {getStatusIcon('Not Found')}
+          <StatusIcon status="Submitted">
+            {getStatusIcon('Submitted')}
           </StatusIcon>
           <StatusInfo>
             <h2>Status Not Available</h2>

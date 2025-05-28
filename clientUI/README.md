@@ -46,7 +46,7 @@ This will create a production build in the `build` folder.
 - Users can select from their tax filings to check the status
 
 ### Refund Status Display
-- Shows current status (Not Found, Processing, Needs Action, Approved)
+- Shows current status (Submitted, Processing, Needs Action, Approved)
 - For "Processing" status, shows estimated completion time
 - For "Approved" status, shows refund amount and deposit date
 - For "Needs Action" status, shows required actions

@@ -1,5 +1,6 @@
 import dbService from '../db/db-service';
-import { TaxFile, TaxProcessingEvent, IRSTransitionEstimate } from '../db/db-service';
+import mlIntegration from './ml-integration';
+import { TaxFile } from '../db/db-service';
 
 // Types
 export interface PredictionResult {
@@ -11,7 +12,7 @@ export interface PredictionResult {
 class PredictionService {
   /**
    * Predict the estimated time for refund availability
-   * This is a simple implementation that will be replaced with an ML model later
+   * Uses the ML API if available, falls back to database estimates if not
    */
   async predictRefundAvailability(taxFileId: string): Promise<PredictionResult | null> {
     try {
@@ -28,40 +29,35 @@ class PredictionService {
         return null;
       }
 
-      // Get IRS transition estimates
-      const estimate = await dbService.getIRSTransitionEstimates(
-        'Processing',
-        'Approved',
-        taxFile.FilingType,
-        taxFile.TaxYear,
-        taxFile.GeographicRegion
-      );
+      // Check if ML API is available
+      const isMLApiAvailable = await mlIntegration.checkMLApiHealth();
 
-      // If no estimate is found, use default values
-      let estimatedDays = 21; // Default: 3 weeks
-      let confidenceScore = 0.7; // Default confidence
+      let result: PredictionResult;
 
-      if (estimate) {
-        // Use the median transition days as the estimate
-        estimatedDays = estimate.MedianTransitionDays;
-        confidenceScore = estimate.SuccessRate;
+      if (isMLApiAvailable) {
+        // Use ML API for prediction
+        const mlPrediction = await mlIntegration.getPrediction(
+          taxFile.FilingType,
+          taxFile.TaxYear,
+          taxFile.ClaimedRefundAmount,
+          taxFile.GeographicRegion,
+          latestEvent.ProcessingCenter || 'Unknown'
+        );
+
+        if (mlPrediction) {
+          result = {
+            estimatedDays: mlPrediction.estimated_days,
+            confidenceScore: mlPrediction.confidence_score,
+            predictedDate: mlPrediction.predicted_date
+          };
+        } else {
+          // ML API call failed, fall back to database estimates
+          result = await this.getPredictionFromDatabase(taxFile);
+        }
+      } else {
+        // ML API not available, use database estimates
+        result = await this.getPredictionFromDatabase(taxFile);
       }
-
-      // Add some randomness to simulate ML model variability
-      const randomFactor = 0.8 + Math.random() * 0.4; // Random factor between 0.8 and 1.2
-      estimatedDays = Math.round(estimatedDays * randomFactor);
-
-      // Calculate predicted date
-      const currentDate = new Date();
-      const predictedDate = new Date(currentDate);
-      predictedDate.setDate(currentDate.getDate() + estimatedDays);
-
-      // Create prediction result
-      const result: PredictionResult = {
-        estimatedDays,
-        confidenceScore,
-        predictedDate: predictedDate.toISOString().split('T')[0] // Format as YYYY-MM-DD
-      };
 
       // Store prediction in database
       const inputFeatures = {
@@ -73,7 +69,7 @@ class PredictionService {
 
       await dbService.createTaxRefundPrediction(
         taxFileId,
-        confidenceScore,
+        result.confidenceScore,
         result.predictedDate,
         inputFeatures
       );
@@ -83,6 +79,42 @@ class PredictionService {
       console.error('Error predicting refund availability:', error);
       return null;
     }
+  }
+
+  /**
+   * Get prediction from database estimates (fallback method)
+   */
+  private async getPredictionFromDatabase(taxFile: TaxFile): Promise<PredictionResult> {
+    // Get IRS transition estimates
+    const estimate = await dbService.getIRSTransitionEstimates(
+      'Processing',
+      'Approved',
+      taxFile.FilingType,
+      taxFile.TaxYear,
+      taxFile.GeographicRegion
+    );
+
+    // If no estimate is found, use default values
+    let estimatedDays = 21; // Default: 3 weeks
+    let confidenceScore = 0.7; // Default confidence
+
+    if (estimate) {
+      // Use the median transition days as the estimate
+      estimatedDays = estimate.MedianTransitionDays;
+      confidenceScore = estimate.SuccessRate;
+    }
+
+    // Calculate predicted date
+    const currentDate = new Date();
+    const predictedDate = new Date(currentDate);
+    predictedDate.setDate(currentDate.getDate() + estimatedDays);
+
+    // Create prediction result
+    return {
+      estimatedDays,
+      confidenceScore,
+      predictedDate: predictedDate.toISOString().split('T')[0] // Format as YYYY-MM-DD
+    };
   }
 }
 

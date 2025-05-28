@@ -1,6 +1,6 @@
 Core Functionality:
 FR1: The client application can query user’s most recent tax refund status using unique tax identifier and tax filing id
-FR2: System displays current refund status (Not Found, Processing, Needs Action, Approved)
+FR2: System displays current refund status (Submitted, Processing, Needs Action, Approved)
 FR3: AI model predicts estimated time for refund availability when status is “Processing”
 FR4: Support querying for multiple tax filings per person
 FR5: If the status is “Needs Action,” the system should provide actionable guidance or a summary of required user steps (e.g., missing documentation, verification needed)

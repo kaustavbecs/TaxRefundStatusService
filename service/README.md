@@ -142,7 +142,7 @@ Response:
     "EventID": "event-001",
     "TaxFileID": "taxfile-001",
     "OldStatus": null,
-    "NewStatus": "Not Found",
+    "NewStatus": "Submitted",
     "StatusDetails": "Tax filing received",
     "StatusUpdateDate": "2024-02-15 10:30:00",
     "UpdateSource": "IRS",
@@ -153,7 +153,7 @@ Response:
   {
     "EventID": "event-002",
     "TaxFileID": "taxfile-001",
-    "OldStatus": "Not Found",
+    "OldStatus": "Submitted",
     "NewStatus": "Processing",
     "StatusDetails": "Tax filing under review",
     "StatusUpdateDate": "2024-02-20 09:45:00",

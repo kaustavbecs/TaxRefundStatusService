@@ -58,7 +58,7 @@ export interface RefundStatus {
 }
 
 // Status types
-export type StatusType = 'Not Found' | 'Processing' | 'Needs Action' | 'Approved';
+export type StatusType = 'Submitted' | 'Processing' | 'Needs Action' | 'Approved';
 
 // API response types
 export interface ApiResponse<T> {

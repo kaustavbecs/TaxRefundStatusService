@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "created_at": "2025-05-28T15:20:26.274832",
+  "metrics": {
+    "mae": 4.859999999999999,
+    "rmse": 4.859999999999999,
+    "r2": NaN,
+    "best_params": {
+      "regressor__max_depth": null,
+      "regressor__min_samples_split": 5,
+      "regressor__n_estimators": 100
+    }
+  },
+  "feature_importance": {
+    "FilingType": 0.0,
+    "TaxYear": 0.0,
+    "RefundAmountBucket": 0.0,
+    "GeographicRegion": 0.0,
+    "ProcessingCenter": 0.0,
+    "FilingPeriod": 0.0,
+    "SampleSize": 0.0,
+    "SuccessRate": 0.0
+  },
+  "description": "Tax refund processing time prediction model"
+}

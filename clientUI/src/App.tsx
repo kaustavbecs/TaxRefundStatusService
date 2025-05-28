@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { HashRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import Header from './components/Header';
 import RefundStatus from './components/RefundStatus';
 import RefundStatusHistory from './components/RefundStatusHistory';
@@ -102,18 +103,19 @@ const FooterCopyright = styled.div`
   font-size: 0.9rem;
 `;
 
-// Mock user ID - In a real app, this would come from authentication
-const MOCK_USER_ID = 'user-001';
-
-const App: React.FC = () => {
+// User dashboard component that handles the tax filing display
+const UserDashboard: React.FC = () => {
+  const { userId } = useParams<{ userId: string }>();
   const [taxFilings, setTaxFilings] = useState<TaxFile[]>([]);
   const [selectedTaxFileId, setSelectedTaxFileId] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchTaxFilings = async () => {
+      if (!userId) return;
+      
       setLoading(true);
-      const data = await getTaxFilings(MOCK_USER_ID);
+      const data = await getTaxFilings(userId);
       setTaxFilings(data);
       
       // Select the most recent tax filing by default
@@ -125,7 +127,7 @@ const App: React.FC = () => {
     };
 
     fetchTaxFilings();
-  }, []);
+  }, [userId]);
 
   const handleTaxFilingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedTaxFileId(e.target.value);
@@ -137,7 +139,7 @@ const App: React.FC = () => {
 
   return (
     <AppContainer>
-      <Header userName="John Doe" />
+      <Header userName={`User ${userId}`} />
       
       <MainContent>
         <Container>
@@ -146,12 +148,12 @@ const App: React.FC = () => {
           {loading ? (
             <p>Loading tax filings...</p>
           ) : taxFilings.length === 0 ? (
-            <p>No tax filings found.</p>
+            <p>No tax filings found for user {userId}.</p>
           ) : (
             <>
               <TaxFilingSelector>
                 <SelectLabel htmlFor="tax-filing-select">Select Tax Filing:</SelectLabel>
-                <Select 
+                <Select
                   id="tax-filing-select"
                   value={selectedTaxFileId}
                   onChange={handleTaxFilingChange}
@@ -193,6 +195,18 @@ const App: React.FC = () => {
         </FooterContent>
       </Footer>
     </AppContainer>
+  );
+};
+
+// Main App component with routing
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/user/:userId" element={<UserDashboard />} />
+        <Route path="/" element={<Navigate to="/user/1" replace />} />
+      </Routes>
+    </Router>
   );
 };
 

@@ -18,33 +18,33 @@ INSERT INTO TaxFiles (TaxFileID, UserID, TaxYear, FilingType, DateOfFiling, TaxC
 ('taxfile-006', 'user-001', 2023, 'Individual', '2023-03-10 13:25:00', '{"income": "W2", "investments": "yes"}', '{"mortgage": "yes", "student_loans": "yes"}', 2200.00, 'Northeast');
 
 -- Sample TaxProcessingEvents
--- Status types: "Not Found", "Processing", "Needs Action", "Approved"
+-- Status types: "Submitted", "Processing", "Needs Action", "Approved"
 INSERT INTO TaxProcessingEvents (EventID, TaxFileID, OldStatus, NewStatus, StatusDetails, StatusUpdateDate, UpdateSource, ActionRequired, ProcessingCenter) VALUES
 -- Approved case
-('event-001', 'taxfile-001', NULL, 'Not Found', 'Tax filing received', '2024-02-15 10:30:00', 'IRS', NULL, 'Northeast Center'),
-('event-002', 'taxfile-001', 'Not Found', 'Processing', 'Tax filing under review', '2024-02-20 09:45:00', 'IRS', NULL, 'Northeast Center'),
+('event-001', 'taxfile-001', NULL, 'Submitted', 'Tax filing received', '2024-02-15 10:30:00', 'IRS', NULL, 'Northeast Center'),
+('event-002', 'taxfile-001', 'Submitted', 'Processing', 'Tax filing under review', '2024-02-20 09:45:00', 'IRS', NULL, 'Northeast Center'),
 ('event-003', 'taxfile-001', 'Processing', 'Approved', 'Refund approved', '2024-03-15 14:30:00', 'IRS', NULL, 'Northeast Center'),
 
 -- Processing case
-('event-004', 'taxfile-002', NULL, 'Not Found', 'Tax filing received', '2024-02-20 14:45:00', 'IRS', NULL, 'West Center'),
-('event-005', 'taxfile-002', 'Not Found', 'Processing', 'Tax filing under review', '2024-02-25 10:15:00', 'IRS', NULL, 'West Center'),
+('event-004', 'taxfile-002', NULL, 'Submitted', 'Tax filing received', '2024-02-20 14:45:00', 'IRS', NULL, 'West Center'),
+('event-005', 'taxfile-002', 'Submitted', 'Processing', 'Tax filing under review', '2024-02-25 10:15:00', 'IRS', NULL, 'West Center'),
 
 -- Needs Action case
-('event-006', 'taxfile-003', NULL, 'Not Found', 'Tax filing received', '2024-03-01 09:15:00', 'IRS', NULL, 'South Center'),
-('event-007', 'taxfile-003', 'Not Found', 'Processing', 'Tax filing under review', '2024-03-05 11:30:00', 'IRS', NULL, 'South Center'),
+('event-006', 'taxfile-003', NULL, 'Submitted', 'Tax filing received', '2024-03-01 09:15:00', 'IRS', NULL, 'South Center'),
+('event-007', 'taxfile-003', 'Submitted', 'Processing', 'Tax filing under review', '2024-03-05 11:30:00', 'IRS', NULL, 'South Center'),
 ('event-008', 'taxfile-003', 'Processing', 'Needs Action', 'Additional information required', '2024-03-20 15:45:00', 'IRS', 'Please provide missing W-2 form', 'South Center'),
 
--- Not Found case
-('event-009', 'taxfile-004', NULL, 'Not Found', 'Tax filing received', '2024-03-10 16:20:00', 'IRS', NULL, 'Midwest Center'),
+-- Submitted case
+('event-009', 'taxfile-004', NULL, 'Submitted', 'Tax filing received', '2024-03-10 16:20:00', 'IRS', NULL, 'Midwest Center'),
 
 -- Another Approved case
-('event-010', 'taxfile-005', NULL, 'Not Found', 'Tax filing received', '2024-03-15 11:00:00', 'IRS', NULL, 'West Center'),
-('event-011', 'taxfile-005', 'Not Found', 'Processing', 'Tax filing under review', '2024-03-20 09:30:00', 'IRS', NULL, 'West Center'),
+('event-010', 'taxfile-005', NULL, 'Submitted', 'Tax filing received', '2024-03-15 11:00:00', 'IRS', NULL, 'West Center'),
+('event-011', 'taxfile-005', 'Submitted', 'Processing', 'Tax filing under review', '2024-03-20 09:30:00', 'IRS', NULL, 'West Center'),
 ('event-012', 'taxfile-005', 'Processing', 'Approved', 'Refund approved', '2024-04-10 13:15:00', 'IRS', NULL, 'West Center'),
 
 -- Previous year filing (Approved)
-('event-013', 'taxfile-006', NULL, 'Not Found', 'Tax filing received', '2023-03-10 13:25:00', 'IRS', NULL, 'Northeast Center'),
-('event-014', 'taxfile-006', 'Not Found', 'Processing', 'Tax filing under review', '2023-03-15 10:45:00', 'IRS', NULL, 'Northeast Center'),
+('event-013', 'taxfile-006', NULL, 'Submitted', 'Tax filing received', '2023-03-10 13:25:00', 'IRS', NULL, 'Northeast Center'),
+('event-014', 'taxfile-006', 'Submitted', 'Processing', 'Tax filing under review', '2023-03-15 10:45:00', 'IRS', NULL, 'Northeast Center'),
 ('event-015', 'taxfile-006', 'Processing', 'Approved', 'Refund approved', '2023-04-05 14:20:00', 'IRS', NULL, 'Northeast Center');
 
 -- Sample TaxRefundPredictions
@@ -61,7 +61,7 @@ INSERT INTO IRSTransitionEstimates (
     SampleSize, SuccessRate, ComputationDate, DataPeriodStart, DataPeriodEnd, 
     ETLJobID, DataQualityScore
 ) VALUES
-('estimate-001', 'Not Found', 'Processing', 'Individual', 2024, 
+('estimate-001', 'Submitted', 'Processing', 'Individual', 2024,
  '{"income": "W2"}', '{"mortgage": "yes"}', '1000-3000', 'Northeast', 
  'Northeast Center', 'Early', 5.2, 5, 
  3, 7, 1, 14, 
@@ -75,7 +75,7 @@ INSERT INTO IRSTransitionEstimates (
  1100, 0.92, '2024-03-01', '2024-01-01', '2024-02-28', 
  'etl-job-001', 0.95),
 
-('estimate-003', 'Not Found', 'Processing', 'Joint', 2024, 
+('estimate-003', 'Submitted', 'Processing', 'Joint', 2024,
  '{"income": "W2"}', '{"mortgage": "yes"}', '3000-5000', 'West', 
  'West Center', 'Mid', 6.8, 6, 
  4, 9, 2, 18, 

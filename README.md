@@ -4,10 +4,11 @@ A full-stack application for checking tax refund status and estimating refund av
 
 ## Project Structure
 
-This project consists of two main components:
+This project consists of three main components:
 
 1. **Service**: A backend API service built with Node.js, Express, and TypeScript that provides tax refund status information and predictions.
 2. **Client UI**: A frontend application built with React and TypeScript that resembles TurboTax's interface for displaying tax refund status.
+3. **ML & ETL**: A Python-based machine learning and ETL pipeline that processes tax refund data and provides predictions for refund processing times.
 
 ## Service
 
@@ -53,6 +54,27 @@ The client UI component provides a user interface that resembles TurboTax for:
 - Refund status display
 - Status history timeline
 
+## ML & ETL
+
+The ML & ETL component provides:
+- ETL process to transform online data into an analytics format
+- Machine learning model for predicting tax refund processing times
+- API for serving predictions
+
+### Technologies Used
+
+- Python
+- pandas, NumPy, scikit-learn
+- FastAPI
+- SQLite
+
+### Key Features
+
+- Data extraction from online database
+- Statistical analysis of processing times
+- Machine learning model training
+- API for serving predictions
+
 ## Getting Started
 
 ### Prerequisites
@@ -89,7 +111,12 @@ The client UI component provides a user interface that resembles TurboTax for:
    npm start
    ```
 
-3. Access the application at http://localhost:3000
+3. Start the ML services:
+   ```
+   ./start_ml_services.sh
+   ```
+
+4. Access the application at http://localhost:3000
 
 ## API Endpoints
 
@@ -150,4 +177,14 @@ GET /api/refund-status/:taxFileId/history
 │   │   └── App.tsx           # Main application component
 │   └── README.md             # Client documentation
 │
+├── ml_etl/                   # ML & ETL pipeline
+│   ├── src/                  # Source code
+│   │   ├── etl/              # ETL process code
+│   │   ├── ml/               # ML model training and API code
+│   │   └── main.py           # Main orchestration script
+│   ├── data/                 # Data files
+│   ├── models/               # Trained ML models
+│   └── README.md             # ML & ETL documentation
+│
+├── start_ml_services.sh      # Script to start ML services
 └── README.md                 # Main project documentation

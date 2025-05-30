@@ -614,65 +614,7 @@ def run_model_monitoring() -> bool:
         # Get model metadata
         model_metadata = get_model_metadata(model_id)
         
-        # Get recent predictions with outcomes from online database
-        # This would normally be a separate ETL process that copies data from online to offline
-        # For this example, we'll simulate it by directly querying the online database
-        online_db_path = os.environ.get('ONLINE_DB_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../service/db/tax_refund.db')))
-        
-        try:
-            # Connect to online database
-            online_conn = sqlite3.connect(online_db_path)
-            
-            # Calculate cutoff date
-            cutoff_date = (datetime.now() - timedelta(days=30)).isoformat()
-            
-            # Query to get predictions with outcomes
-            query = """
-            SELECT
-                p.PredictionID,
-                p.TaxFileID,
-                p.ConfidenceScore,
-                p.ModelVersion,
-                p.PredictedAvailabilityDate,
-                p.InputFeatures,
-                p.CreatedAt as PredictionDate,
-                e1.StatusUpdateDate as SourceDate,
-                e2.StatusUpdateDate as TargetDate,
-                julianday(e2.StatusUpdateDate) - julianday(e1.StatusUpdateDate) as ActualTransitionDays,
-                julianday(p.PredictedAvailabilityDate) - julianday(e1.StatusUpdateDate) as PredictedTransitionDays
-            FROM
-                TaxRefundPredictions p
-            JOIN
-                TaxProcessingEvents e1 ON p.TaxFileID = e1.TaxFileID AND e1.NewStatus = 'Processing'
-            JOIN
-                TaxProcessingEvents e2 ON p.TaxFileID = e2.TaxFileID AND e2.NewStatus = 'Approved' AND e1.StatusUpdateDate < e2.StatusUpdateDate
-            WHERE
-                p.CreatedAt > ? AND
-                p.TaxFileID != 'api-request'
-            ORDER BY
-                p.CreatedAt DESC
-            """
-            
-            online_df = pd.read_sql_query(query, online_conn, params=(cutoff_date,))
-            online_conn.close()
-            
-            if not online_df.empty:
-                # Parse InputFeatures JSON
-                online_df['InputFeatures'] = online_df['InputFeatures'].apply(lambda x: json.loads(x) if x else {})
-                
-                # Calculate error days
-                online_df['ErrorDays'] = online_df['PredictedTransitionDays'] - online_df['ActualTransitionDays']
-                
-                # Store prediction outcomes in offline database
-                store_prediction_outcomes(online_df)
-                
-                logger.info(f"Processed {len(online_df)} prediction outcomes from online database")
-            else:
-                logger.warning("No recent predictions with outcomes found in online database")
-        except Exception as e:
-            logger.error(f"Error processing online database data: {str(e)}")
-        
-        # Now get prediction outcomes from offline database
+        # Get prediction outcomes from offline database (populated by ETL process)
         predictions_df = get_recent_predictions_with_outcomes()
         
         # Evaluate model performance

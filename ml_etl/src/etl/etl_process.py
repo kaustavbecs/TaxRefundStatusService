@@ -387,6 +387,157 @@ def load_data(training_data: pd.DataFrame, stats_df: pd.DataFrame) -> None:
     
     logger.info("Data loading completed successfully")
 
+def extract_prediction_outcomes() -> pd.DataFrame:
+    """Extract prediction outcomes from the online database."""
+    logger.info("Extracting prediction outcomes from online database")
+    
+    # Check if online database exists
+    if not os.path.exists(ONLINE_DB_PATH):
+        logger.error(f"Online database not found at {ONLINE_DB_PATH}")
+        return pd.DataFrame()  # Return empty DataFrame
+    
+    try:
+        conn = sqlite3.connect(ONLINE_DB_PATH)
+        
+        # Calculate cutoff date (last 30 days)
+        cutoff_date = (datetime.now() - timedelta(days=30)).isoformat()
+        
+        # Query to get predictions with outcomes
+        query = """
+        SELECT
+            p.PredictionID,
+            p.TaxFileID,
+            p.ConfidenceScore,
+            p.ModelVersion,
+            p.PredictedAvailabilityDate,
+            p.InputFeatures,
+            p.CreatedAt as PredictionDate,
+            e1.StatusUpdateDate as SourceDate,
+            e2.StatusUpdateDate as TargetDate,
+            julianday(e2.StatusUpdateDate) - julianday(e1.StatusUpdateDate) as ActualTransitionDays,
+            julianday(p.PredictedAvailabilityDate) - julianday(e1.StatusUpdateDate) as PredictedTransitionDays
+        FROM
+            TaxRefundPredictions p
+        JOIN
+            TaxProcessingEvents e1 ON p.TaxFileID = e1.TaxFileID AND e1.NewStatus = 'Processing'
+        JOIN
+            TaxProcessingEvents e2 ON p.TaxFileID = e2.TaxFileID AND e2.NewStatus = 'Approved' AND e1.StatusUpdateDate < e2.StatusUpdateDate
+        WHERE
+            p.CreatedAt > ?
+        ORDER BY
+            p.CreatedAt DESC
+        """
+        
+        df = pd.read_sql_query(query, conn, params=(cutoff_date,))
+        conn.close()
+        
+        logger.info(f"Extracted {len(df)} prediction outcomes from online database")
+        return df
+    except Exception as e:
+        logger.error(f"Error extracting prediction outcomes: {str(e)}")
+        return pd.DataFrame()  # Return empty DataFrame on error
+
+def transform_prediction_outcomes(df: pd.DataFrame) -> pd.DataFrame:
+    """Transform prediction outcomes data."""
+    logger.info("Transforming prediction outcomes data")
+    
+    if df.empty:
+        logger.warning("No prediction outcomes to transform")
+        return pd.DataFrame()
+    
+    try:
+        # Parse InputFeatures JSON
+        df['InputFeatures'] = df['InputFeatures'].apply(lambda x: json.loads(x) if x else {})
+        
+        # Calculate error days
+        df['ErrorDays'] = df['PredictedTransitionDays'] - df['ActualTransitionDays']
+        
+        # Add metadata
+        df['OutcomeID'] = [f'outcome-{uuid.uuid4()}' for _ in range(len(df))]
+        df['CreatedAt'] = datetime.now().isoformat()
+        
+        logger.info(f"Transformed {len(df)} prediction outcomes")
+        return df
+    except Exception as e:
+        logger.error(f"Error transforming prediction outcomes: {str(e)}")
+        return pd.DataFrame()
+
+def load_prediction_outcomes(df: pd.DataFrame) -> bool:
+    """Load prediction outcomes into the offline database."""
+    logger.info("Loading prediction outcomes into offline database")
+    
+    if df.empty:
+        logger.warning("No prediction outcomes to load")
+        return False
+    
+    try:
+        conn = sqlite3.connect(OFFLINE_DB_PATH)
+        cursor = conn.cursor()
+        
+        # Check if PredictionOutcomes table exists
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='PredictionOutcomes'")
+        has_outcomes_table = cursor.fetchone() is not None
+        
+        # Create table if it doesn't exist
+        if not has_outcomes_table:
+            logger.info("Creating PredictionOutcomes table")
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS PredictionOutcomes (
+                OutcomeID TEXT PRIMARY KEY,
+                PredictionID TEXT,
+                TaxFileID TEXT,
+                ConfidenceScore REAL,
+                ModelVersion TEXT,
+                PredictedAvailabilityDate TEXT,
+                PredictedTransitionDays REAL,
+                ActualTransitionDays REAL,
+                ErrorDays REAL,
+                InputFeatures TEXT,
+                CreatedAt TEXT
+            )
+            ''')
+        
+        # Insert each prediction outcome
+        outcomes_stored = 0
+        for _, row in df.iterrows():
+            # Check if this prediction outcome already exists
+            cursor.execute(
+                "SELECT COUNT(*) FROM PredictionOutcomes WHERE PredictionID = ?",
+                (row['PredictionID'],)
+            )
+            if cursor.fetchone()[0] > 0:
+                continue  # Skip if already exists
+            
+            cursor.execute('''
+            INSERT INTO PredictionOutcomes (
+                OutcomeID, PredictionID, TaxFileID, ConfidenceScore, ModelVersion,
+                PredictedAvailabilityDate, PredictedTransitionDays, ActualTransitionDays,
+                ErrorDays, InputFeatures, CreatedAt
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                row['OutcomeID'],
+                row['PredictionID'],
+                row['TaxFileID'],
+                row['ConfidenceScore'],
+                row['ModelVersion'],
+                row['PredictedAvailabilityDate'],
+                row['PredictedTransitionDays'],
+                row['ActualTransitionDays'],
+                row['ErrorDays'],
+                json.dumps(row['InputFeatures']),
+                row['CreatedAt']
+            ))
+            outcomes_stored += 1
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"Loaded {outcomes_stored} prediction outcomes into offline database")
+        return True
+    except Exception as e:
+        logger.error(f"Error loading prediction outcomes: {str(e)}")
+        return False
+
 def run_etl_process() -> None:
     """Run the complete ETL process."""
     logger.info("Starting ETL process")
@@ -403,6 +554,15 @@ def run_etl_process() -> None:
         
         # Load data into offline database
         load_data(training_data, stats_df)
+        
+        # Extract prediction outcomes
+        prediction_outcomes_data = extract_prediction_outcomes()
+        
+        # Transform prediction outcomes
+        transformed_outcomes = transform_prediction_outcomes(prediction_outcomes_data)
+        
+        # Load prediction outcomes
+        load_prediction_outcomes(transformed_outcomes)
         
         logger.info("ETL process completed successfully")
     except Exception as e:

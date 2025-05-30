@@ -1,25 +1,46 @@
 {
-  "version": 5,
-  "created_at": "2025-05-28T17:59:41.165923",
-  "metrics": {
-    "mae": 8.762131944444445,
-    "rmse": 9.383395540446374,
-    "r2": -0.5379582859121206,
-    "best_params": {
-      "regressor__max_depth": null,
-      "regressor__min_samples_split": 5,
-      "regressor__n_estimators": 100
-    }
+  "model_id": "model-3",
+  "version": 3,
+  "created_at": "2025-05-29T21:46:47.377756",
+  "algorithm": "RandomForestRegressor",
+  "hyperparameters": {
+    "regressor__max_depth": null,
+    "regressor__min_samples_split": 2,
+    "regressor__n_estimators": 50
+  },
+  "feature_list": [
+    "FilingType",
+    "TaxYear",
+    "ClaimedRefundAmount",
+    "GeographicRegion",
+    "ProcessingCenter",
+    "FilingPeriod",
+    "RefundAmountBucket"
+  ],
+  "training_metrics": {
+    "mae": 6.340166666666666,
+    "rmse": 7.581912253295118,
+    "r2": -7.344653883064513,
+    "accuracy_within_7_days": 0.6666666666666666,
+    "training_data_size": 32
+  },
+  "test_metrics": {
+    "mae": 4.27804761904762,
+    "rmse": 5.938129363183345,
+    "r2": -4.641820853424037,
+    "accuracy_within_3_days": 0.5,
+    "accuracy_within_7_days": 0.5,
+    "accuracy_within_14_days": 1.0,
+    "sample_size": 2
   },
   "feature_importance": {
-    "FilingType": 0.018782535653167485,
-    "TaxYear": 0.0047689156541465775,
-    "RefundAmountBucket": 0.024242878942321234,
-    "GeographicRegion": 0.12816493652327848,
-    "ProcessingCenter": 0.04717921652378154,
-    "FilingPeriod": 0.010311772705259665,
-    "SampleSize": 0.012586653794087707,
-    "SuccessRate": 0.06846912765006681
+    "FilingType": 0.014096006603161437,
+    "TaxYear": 0.016509688408797636,
+    "ClaimedRefundAmount": 0.01734390933181108,
+    "GeographicRegion": 0.03330265333031245,
+    "ProcessingCenter": 0.0042654391568532415,
+    "FilingPeriod": 0.061939245657134795,
+    "RefundAmountBucket": 0.009429492408699013
   },
   "description": "Tax refund processing time prediction model"
 }

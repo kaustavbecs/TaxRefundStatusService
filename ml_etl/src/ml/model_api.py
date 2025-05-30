@@ -9,11 +9,12 @@ and serve predictions for tax refund processing times.
 import os
 import json
 import logging
+import sqlite3
 import joblib
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends
 from pydantic import BaseModel, Field
 
 # Configure logging
@@ -57,7 +58,8 @@ logger.propagate = False
 
 logger.info(f"Logging to file: {log_file_path}")
 
-# Model paths
+# Database and model paths
+OFFLINE_DB_PATH = os.environ.get('OFFLINE_DB_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../ml_etl/data/processed/tax_refund_analytics.db')))
 MODEL_DIR = os.environ.get('MODEL_DIR', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../ml_etl/models')))
 LATEST_MODEL_PATH = os.path.join(MODEL_DIR, 'refund_prediction_model_latest.joblib')
 LATEST_METADATA_PATH = os.path.join(MODEL_DIR, 'model_metadata_latest.json')
@@ -66,6 +68,7 @@ LATEST_METADATA_PATH = os.path.join(MODEL_DIR, 'model_metadata_latest.json')
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 # Print paths for debugging
+print(f"Offline DB path: {OFFLINE_DB_PATH}")
 print(f"Model directory: {MODEL_DIR}")
 print(f"Latest model path: {LATEST_MODEL_PATH}")
 
@@ -80,6 +83,7 @@ app = FastAPI(
 model = None
 model_metadata = None
 model_version = "unknown"
+model_id = None
 
 # Input and output models
 class PredictionRequest(BaseModel):
@@ -98,10 +102,32 @@ class PredictionResponse(BaseModel):
     predicted_date: str = Field(..., description="Predicted date of completion")
     model_version: str = Field(..., description="Version of the model used for prediction")
 
+class FeatureDriftResponse(BaseModel):
+    drift_detected: bool = Field(..., description="Whether feature drift has been detected")
+    drift_score: float = Field(..., description="Feature drift score (0-1)")
+    significant_features: List[str] = Field(..., description="Features with significant drift")
+    detection_date: str = Field(..., description="Date when drift was last detected")
+
+class ModelPerformanceResponse(BaseModel):
+    model_version: str = Field(..., description="Model version")
+    accuracy_within_7_days: float = Field(..., description="Percentage of predictions within 7 days of actual")
+    mean_absolute_error_days: float = Field(..., description="Mean absolute error in days")
+    evaluation_date: str = Field(..., description="Date of evaluation")
+    sample_size: int = Field(..., description="Number of samples used for evaluation")
+
+def get_db_connection():
+    """Get a connection to the offline database."""
+    conn = sqlite3.connect(OFFLINE_DB_PATH)
+    conn.row_factory = sqlite3.Row  # Return rows as dictionaries
+    try:
+        yield conn
+    finally:
+        conn.close()
+
 @app.on_event("startup")
 async def startup_event():
     """Load the model and metadata on startup."""
-    global model, model_metadata, model_version
+    global model, model_metadata, model_version, model_id
     
     try:
         # Check for model directory
@@ -120,9 +146,11 @@ async def startup_event():
                 with open(LATEST_METADATA_PATH, 'r') as f:
                     model_metadata = json.load(f)
                 model_version = f"v{model_metadata.get('version', 'latest')}"
+                model_id = model_metadata.get('model_id', f"model-{model_metadata.get('version', 'latest')}")
             else:
                 model_version = "latest"
                 model_metadata = {"version": "latest"}
+                model_id = "model-latest"
                 
             logger.info(f"Successfully loaded latest model ({model_version})")
         else:
@@ -149,8 +177,10 @@ async def startup_event():
                 if os.path.exists(metadata_path):
                     with open(metadata_path, 'r') as f:
                         model_metadata = json.load(f)
+                    model_id = model_metadata.get('model_id', f"model-{highest_version}")
                 else:
                     model_metadata = {"version": highest_version}
+                    model_id = f"model-{highest_version}"
                 
                 model_version = f"v{highest_version}"
                 logger.info(f"Successfully loaded model {model_version}")
@@ -161,6 +191,7 @@ async def startup_event():
         logger.error(f"Error loading model: {str(e)}")
         model = None
         model_metadata = {"version": "unknown", "error": str(e)}
+        model_id = None
 
 @app.get("/health")
 async def health_check():
@@ -175,12 +206,26 @@ async def health_check():
     
     has_latest = os.path.exists(LATEST_MODEL_PATH)
     
+    # Check database connection
+    db_status = "unknown"
+    try:
+        conn = sqlite3.connect(OFFLINE_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+        conn.close()
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    
     return {
         "status": "ok" if model is not None else "error",
         "model_loaded": model is not None,
         "model_version": model_version,
+        "model_id": model_id,
         "latest_available": has_latest,
         "available_versions": available_models,
+        "database_status": db_status,
         "timestamp": datetime.now().isoformat()
     }
 
@@ -191,6 +236,136 @@ async def get_metadata():
         raise HTTPException(status_code=404, detail="Model metadata not found")
     
     return model_metadata
+
+@app.get("/performance", response_model=ModelPerformanceResponse)
+async def get_performance(conn: sqlite3.Connection = Depends(get_db_connection)):
+    """Get model performance metrics."""
+    if model_id is None:
+        raise HTTPException(status_code=404, detail="Model not found")
+    
+    try:
+        # Check if ModelPerformance table exists
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ModelPerformance'")
+        if cursor.fetchone() is None:
+            # Fall back to metadata
+            if model_metadata and 'test_metrics' in model_metadata:
+                return {
+                    "model_version": model_version,
+                    "accuracy_within_7_days": model_metadata['test_metrics'].get('accuracy_within_7_days', 0.0),
+                    "mean_absolute_error_days": model_metadata['test_metrics'].get('mae', 0.0),
+                    "evaluation_date": model_metadata.get('created_at', datetime.now().isoformat()),
+                    "sample_size": model_metadata['test_metrics'].get('sample_size', 0)
+                }
+            else:
+                raise HTTPException(status_code=404, detail="Performance metrics not found")
+        
+        # Query performance metrics
+        cursor.execute("""
+        SELECT 
+            m.ModelVersion, 
+            p.AccuracyWithin7Days, 
+            p.MeanAbsoluteErrorDays,
+            p.EvaluationDate,
+            p.SampleSize
+        FROM 
+            ModelPerformance p
+        JOIN 
+            MLModels m ON p.ModelID = m.ModelID
+        WHERE 
+            m.ModelID = ?
+        ORDER BY 
+            p.EvaluationDate DESC
+        LIMIT 1
+        """, (model_id,))
+        
+        row = cursor.fetchone()
+        if row is None:
+            # Fall back to metadata
+            if model_metadata and 'test_metrics' in model_metadata:
+                return {
+                    "model_version": model_version,
+                    "accuracy_within_7_days": model_metadata['test_metrics'].get('accuracy_within_7_days', 0.0),
+                    "mean_absolute_error_days": model_metadata['test_metrics'].get('mae', 0.0),
+                    "evaluation_date": model_metadata.get('created_at', datetime.now().isoformat()),
+                    "sample_size": model_metadata['test_metrics'].get('sample_size', 0)
+                }
+            else:
+                raise HTTPException(status_code=404, detail="Performance metrics not found")
+        
+        return {
+            "model_version": row['ModelVersion'],
+            "accuracy_within_7_days": row['AccuracyWithin7Days'],
+            "mean_absolute_error_days": row['MeanAbsoluteErrorDays'],
+            "evaluation_date": row['EvaluationDate'],
+            "sample_size": row['SampleSize']
+        }
+    except Exception as e:
+        logger.error(f"Error getting performance metrics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting performance metrics: {str(e)}")
+
+@app.get("/drift", response_model=FeatureDriftResponse)
+async def get_drift(conn: sqlite3.Connection = Depends(get_db_connection)):
+    """Get feature drift information."""
+    if model_id is None:
+        raise HTTPException(status_code=404, detail="Model not found")
+    
+    try:
+        # Check if FeatureDrift table exists
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='FeatureDrift'")
+        if cursor.fetchone() is None:
+            # Return default values
+            return {
+                "drift_detected": False,
+                "drift_score": 0.0,
+                "significant_features": [],
+                "detection_date": datetime.now().isoformat()
+            }
+        
+        # Query drift information
+        cursor.execute("""
+        SELECT 
+            DriftDetected,
+            FeatureDriftScore,
+            SignificantFeatures,
+            DetectionDate
+        FROM 
+            FeatureDrift
+        WHERE 
+            ModelID = ?
+        ORDER BY 
+            DetectionDate DESC
+        LIMIT 1
+        """, (model_id,))
+        
+        row = cursor.fetchone()
+        if row is None:
+            # Return default values
+            return {
+                "drift_detected": False,
+                "drift_score": 0.0,
+                "significant_features": [],
+                "detection_date": datetime.now().isoformat()
+            }
+        
+        # Parse significant features from JSON
+        significant_features = []
+        if row['SignificantFeatures']:
+            try:
+                significant_features = json.loads(row['SignificantFeatures'])
+            except:
+                significant_features = []
+        
+        return {
+            "drift_detected": bool(row['DriftDetected']),
+            "drift_score": float(row['FeatureDriftScore']),
+            "significant_features": significant_features,
+            "detection_date": row['DetectionDate']
+        }
+    except Exception as e:
+        logger.error(f"Error getting drift information: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting drift information: {str(e)}")
 
 def determine_refund_amount_bucket(amount: float) -> str:
     """Determine the refund amount bucket based on the amount."""
@@ -218,9 +393,9 @@ def determine_filing_period(filing_date: Optional[datetime] = None) -> str:
         return "Late"
 
 @app.post("/predict", response_model=PredictionResponse)
-async def predict(request: PredictionRequest):
+async def predict(request: PredictionRequest, conn: sqlite3.Connection = Depends(get_db_connection)):
     """Predict tax refund processing time."""
-    global model, model_metadata, model_version
+    global model, model_metadata, model_version, model_id
     
     # If no model is available, return error
     if model is None:
@@ -239,9 +414,20 @@ async def predict(request: PredictionRequest):
             'GeographicRegion': [request.geographic_region],
             'ProcessingCenter': [request.processing_center],
             'FilingPeriod': [filing_period],
-            'SampleSize': [100],  # Default value
-            'SuccessRate': [0.9]  # Default value
+            'ClaimedRefundAmount': [request.refund_amount]
         }
+        
+        # Check if model expects SampleSize and SuccessRate (legacy model)
+        if model_metadata and 'feature_list' in model_metadata:
+            feature_list = model_metadata['feature_list']
+            if 'SampleSize' in feature_list:
+                input_data['SampleSize'] = [100]  # Default value
+            if 'SuccessRate' in feature_list:
+                input_data['SuccessRate'] = [0.9]  # Default value
+        else:
+            # Add them just in case (legacy model)
+            input_data['SampleSize'] = [100]  # Default value
+            input_data['SuccessRate'] = [0.9]  # Default value
         
         # Log input features
         logger.info(f"Prediction request received with features:")
@@ -256,9 +442,12 @@ async def predict(request: PredictionRequest):
         
         # Calculate confidence score from model metadata if available
         confidence_score = 0.85  # Default
-        if model_metadata and 'metrics' in model_metadata:
-            if 'r2' in model_metadata['metrics']:
+        if model_metadata:
+            if 'test_metrics' in model_metadata and 'r2' in model_metadata['test_metrics']:
                 # Use R² as a basis for confidence
+                confidence_score = min(0.95, max(0.5, 0.5 + model_metadata['test_metrics']['r2'] * 0.5))
+            elif 'metrics' in model_metadata and 'r2' in model_metadata['metrics']:
+                # Legacy format
                 confidence_score = min(0.95, max(0.5, 0.5 + model_metadata['metrics']['r2'] * 0.5))
         
         # Calculate predicted date
@@ -279,6 +468,8 @@ async def predict(request: PredictionRequest):
         logger.info(f"  Confidence Score: {confidence_score:.2f}")
         logger.info(f"  Predicted Date: {predicted_date}")
         logger.info(f"  Model Version: {model_version}")
+        
+        # Removed database storage - the service should handle storing predictions
         
         return response
     

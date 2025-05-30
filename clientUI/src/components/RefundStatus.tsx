@@ -119,6 +119,19 @@ const LoadingContainer = styled.div`
   height: 200px;
 `;
 
+const EstimationUnavailable = styled.div`
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-left: 4px solid var(--secondary-color);
+  
+  p {
+    margin: 0;
+    color: var(--secondary-color);
+  }
+`;
+
 interface RefundStatusProps {
   taxFileId: string;
 }
@@ -236,18 +249,25 @@ const RefundStatus: React.FC<RefundStatusProps> = ({ taxFileId }) => {
           </DetailRow>
         )}
 
-        {status.status === 'Processing' && status.estimatedCompletionDays && (
-          <DetailRow>
-            <DetailLabel>Estimated Processing Time:</DetailLabel>
-            <DetailValue>{status.estimatedCompletionDays} days</DetailValue>
-          </DetailRow>
-        )}
-
-        {status.status === 'Processing' && status.estimatedCompletionDate && (
-          <DetailRow>
-            <DetailLabel>Estimated Completion Date:</DetailLabel>
-            <DetailValue>{formatDate(status.estimatedCompletionDate)}</DetailValue>
-          </DetailRow>
+        {status.status === 'Processing' && (
+          <>
+            {status.estimatedCompletionDays ? (
+              <>
+                <DetailRow>
+                  <DetailLabel>Estimated Processing Time:</DetailLabel>
+                  <DetailValue>{status.estimatedCompletionDays} days</DetailValue>
+                </DetailRow>
+                <DetailRow>
+                  <DetailLabel>Estimated Completion Date:</DetailLabel>
+                  <DetailValue>{formatDate(status.estimatedCompletionDate!)}</DetailValue>
+                </DetailRow>
+              </>
+            ) : (
+              <EstimationUnavailable>
+                <p>Processing time estimation is currently unavailable. Please check back later.</p>
+              </EstimationUnavailable>
+            )}
+          </>
         )}
 
         {status.status === 'Approved' && status.refundAmount && (

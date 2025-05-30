@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Host ML Model Script
+# Host ML Model Script (New Version)
 # This script starts the API server to host the latest trained ML model
 
 # Exit immediately if a command exits with a non-zero status
@@ -18,13 +18,13 @@ fi
 
 # Check if virtual environment exists
 if [ ! -d "venv" ]; then
-    echo "Python virtual environment not found. Please run train_ml_model.sh first."
+    echo "Python virtual environment not found. Please run train_ml_model_new.sh first."
     exit 1
 fi
 
 # Check if model exists
 if [ ! -f "models/refund_prediction_model_latest.joblib" ]; then
-    echo "ML model not found. Please run train_ml_model.sh first to train the model."
+    echo "ML model not found. Please run train_ml_model_new.sh first to train the model."
     exit 1
 fi
 
@@ -37,6 +37,10 @@ pip install -r requirements.txt > /dev/null
 
 # Start the API server
 echo "Starting ML API server..."
-python src/main.py --mode api
+if [ -f "src/main_new.py" ]; then
+    python src/main_new.py --mode api
+else
+    python src/main.py --mode api
+fi
 
 # Note: The API server will run in the foreground until stopped with Ctrl+C

@@ -12,7 +12,7 @@ export interface PredictionResult {
 class PredictionService {
   /**
    * Predict the estimated time for refund availability
-   * Uses the ML API if available, falls back to database estimates if not
+   * Uses the ML API if available, returns null if not
    */
   async predictRefundAvailability(taxFileId: string): Promise<PredictionResult | null> {
     try {
@@ -32,32 +32,33 @@ class PredictionService {
       // Check if ML API is available
       const isMLApiAvailable = await mlIntegration.checkMLApiHealth();
 
-      let result: PredictionResult;
-
-      if (isMLApiAvailable) {
-        // Use ML API for prediction
-        const mlPrediction = await mlIntegration.getPrediction(
-          taxFile.FilingType,
-          taxFile.TaxYear,
-          taxFile.ClaimedRefundAmount,
-          taxFile.GeographicRegion,
-          latestEvent.ProcessingCenter || 'Unknown'
-        );
-
-        if (mlPrediction) {
-          result = {
-            estimatedDays: mlPrediction.estimated_days,
-            confidenceScore: mlPrediction.confidence_score,
-            predictedDate: mlPrediction.predicted_date
-          };
-        } else {
-          // ML API call failed, fall back to database estimates
-          result = await this.getPredictionFromDatabase(taxFile);
-        }
-      } else {
-        // ML API not available, use database estimates
-        result = await this.getPredictionFromDatabase(taxFile);
+      if (!isMLApiAvailable) {
+        // ML API not available, return null
+        console.log('ML API is not available, cannot make prediction');
+        return null;
       }
+
+      // Use ML API for prediction
+      const mlPrediction = await mlIntegration.getPrediction(
+        taxFile.FilingType,
+        taxFile.TaxYear,
+        taxFile.ClaimedRefundAmount,
+        taxFile.GeographicRegion,
+        latestEvent.ProcessingCenter || 'Unknown'
+      );
+
+      if (!mlPrediction) {
+        // ML API call failed, return null
+        console.log('ML API call failed, cannot make prediction');
+        return null;
+      }
+
+      // Create prediction result
+      const result = {
+        estimatedDays: mlPrediction.estimated_days,
+        confidenceScore: mlPrediction.confidence_score,
+        predictedDate: mlPrediction.predicted_date
+      };
 
       // Store prediction in database
       const inputFeatures = {
@@ -79,42 +80,6 @@ class PredictionService {
       console.error('Error predicting refund availability:', error);
       return null;
     }
-  }
-
-  /**
-   * Get prediction from database estimates (fallback method)
-   */
-  private async getPredictionFromDatabase(taxFile: TaxFile): Promise<PredictionResult> {
-    // Get IRS transition estimates
-    const estimate = await dbService.getIRSTransitionEstimates(
-      'Processing',
-      'Approved',
-      taxFile.FilingType,
-      taxFile.TaxYear,
-      taxFile.GeographicRegion
-    );
-
-    // If no estimate is found, use default values
-    let estimatedDays = 21; // Default: 3 weeks
-    let confidenceScore = 0.7; // Default confidence
-
-    if (estimate) {
-      // Use the median transition days as the estimate
-      estimatedDays = estimate.MedianTransitionDays;
-      confidenceScore = estimate.SuccessRate;
-    }
-
-    // Calculate predicted date
-    const currentDate = new Date();
-    const predictedDate = new Date(currentDate);
-    predictedDate.setDate(currentDate.getDate() + estimatedDays);
-
-    // Create prediction result
-    return {
-      estimatedDays,
-      confidenceScore,
-      predictedDate: predictedDate.toISOString().split('T')[0] // Format as YYYY-MM-DD
-    };
   }
 }
 

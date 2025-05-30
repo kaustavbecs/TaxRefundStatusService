@@ -2,9 +2,9 @@
 """
 ETL Process for Tax Refund Status Service
 
-This script extracts data from the online database, transforms it to calculate
-statistics for refund processing times, and loads it into the offline database
-for ML model training.
+This script extracts data from the online database, transforms it for both
+raw training data and aggregated statistics, and loads it into the offline
+database for ML model training and monitoring.
 """
 
 import os
@@ -12,6 +12,7 @@ import uuid
 import logging
 import sqlite3
 import json
+import random
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
@@ -28,6 +29,7 @@ logger = logging.getLogger(__name__)
 # Use absolute path to ensure the database can be found regardless of where the script is run from
 ONLINE_DB_PATH = os.environ.get('ONLINE_DB_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../service/db/tax_refund.db')))
 OFFLINE_DB_PATH = os.environ.get('OFFLINE_DB_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../ml_etl/data/processed/tax_refund_analytics.db')))
+SCHEMA_PATH = os.environ.get('SCHEMA_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../ml_etl/data/schema.sql')))
 
 # Ensure directories exist
 os.makedirs(os.path.dirname(OFFLINE_DB_PATH), exist_ok=True)
@@ -35,6 +37,7 @@ os.makedirs(os.path.dirname(OFFLINE_DB_PATH), exist_ok=True)
 # Print paths for debugging
 print(f"Online DB path: {ONLINE_DB_PATH}")
 print(f"Offline DB path: {OFFLINE_DB_PATH}")
+print(f"Schema path: {SCHEMA_PATH}")
 
 # SQL queries
 EXTRACT_EVENTS_QUERY = """
@@ -63,7 +66,7 @@ ORDER BY
 
 def create_offline_db() -> None:
     """Create the offline database schema if it doesn't exist."""
-    logger.info("Checking offline database...")
+    logger.info("Setting up offline database...")
     
     # Check if database file exists
     db_exists = os.path.exists(OFFLINE_DB_PATH)
@@ -77,48 +80,142 @@ def create_offline_db() -> None:
     
     # Connect to database (creates it if it doesn't exist)
     conn = sqlite3.connect(OFFLINE_DB_PATH)
-    cursor = conn.cursor()
     
-    # Check if table exists
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='IRSTransitionEstimates'")
-    table_exists = cursor.fetchone() is not None
-    
-    if table_exists:
-        logger.info("IRSTransitionEstimates table already exists")
+    # Check if schema file exists
+    if os.path.exists(SCHEMA_PATH):
+        logger.info(f"Applying schema from {SCHEMA_PATH}")
+        with open(SCHEMA_PATH, 'r') as f:
+            schema_sql = f.read()
+            conn.executescript(schema_sql)
     else:
-        logger.info("Creating IRSTransitionEstimates table")
-        # Create IRSTransitionEstimates table
+        logger.warning(f"Schema file not found at {SCHEMA_PATH}. Creating tables manually.")
+        # Create tables manually if schema file doesn't exist
+        cursor = conn.cursor()
+        
+        # Create TrainingData table
         cursor.execute('''
-        CREATE TABLE IF NOT EXISTS IRSTransitionEstimates (
-            EstimateID TEXT PRIMARY KEY,
-            SourceStatus TEXT,
-            TargetStatus TEXT,
+        CREATE TABLE IF NOT EXISTS TrainingData (
+            RecordID TEXT PRIMARY KEY,
+            TaxFileID TEXT,
             FilingType TEXT,
             TaxYear INTEGER,
             TaxCategories TEXT,
             DeductionCategories TEXT,
-            RefundAmountBucket TEXT,
+            ClaimedRefundAmount DECIMAL,
             GeographicRegion TEXT,
             ProcessingCenter TEXT,
             FilingPeriod TEXT,
-            AvgTransitionDays REAL,
+            SourceStatus TEXT,
+            TargetStatus TEXT,
+            ActualTransitionDays INTEGER,
+            DataPartition TEXT,
+            ETLJobID TEXT,
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # Create TransitionStatistics table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS TransitionStatistics (
+            StatID TEXT PRIMARY KEY,
+            SegmentKey TEXT,
+            FilingType TEXT,
+            TaxYear INTEGER,
+            GeographicRegion TEXT,
+            ProcessingCenter TEXT,
+            FilingPeriod TEXT,
+            SourceStatus TEXT,
+            TargetStatus TEXT,
+            AvgTransitionDays DECIMAL,
             MedianTransitionDays INTEGER,
             P25TransitionDays INTEGER,
             P75TransitionDays INTEGER,
             MinTransitionDays INTEGER,
             MaxTransitionDays INTEGER,
             SampleSize INTEGER,
-            SuccessRate REAL,
+            SuccessRate DECIMAL,
             ComputationDate TIMESTAMP,
-            DataPeriodStart DATE,
-            DataPeriodEnd DATE,
             ETLJobID TEXT,
-            DataQualityScore REAL,
-            CreatedAt TIMESTAMP
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
         
-        logger.info("IRSTransitionEstimates table created successfully")
+        # Removed IRSTransitionEstimates table as it's not in EntityModel.MD
+        
+        # Create MLModels table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS MLModels (
+            ModelID TEXT PRIMARY KEY,
+            ModelVersion TEXT,
+            Algorithm TEXT,
+            Hyperparameters TEXT,
+            FeatureList TEXT,
+            TrainingDataSize INTEGER,
+            TrainingStartDate TIMESTAMP,
+            TrainingEndDate TIMESTAMP,
+            CreatedBy TEXT,
+            IsActive BOOLEAN,
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # Create ModelPerformance table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ModelPerformance (
+            PerformanceID TEXT PRIMARY KEY,
+            ModelID TEXT,
+            EvaluationDate TIMESTAMP,
+            DataPartition TEXT,
+            EvaluationPeriod TEXT,
+            SampleSize INTEGER,
+            MeanAbsoluteErrorDays DECIMAL,
+            AccuracyWithin7Days DECIMAL,
+            ConfidenceScoreCorrelation DECIMAL,
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ModelID) REFERENCES MLModels(ModelID)
+        )
+        ''')
+        
+        # Create FeatureDrift table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS FeatureDrift (
+            DriftID TEXT PRIMARY KEY,
+            ModelID TEXT,
+            DetectionDate TIMESTAMP,
+            FeatureDriftScore DECIMAL,
+            DriftDetected BOOLEAN,
+            SignificantFeatures TEXT,
+            SampleSize INTEGER,
+            BaselineStartDate TIMESTAMP,
+            BaselineEndDate TIMESTAMP,
+            CurrentStartDate TIMESTAMP,
+            CurrentEndDate TIMESTAMP,
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ModelID) REFERENCES MLModels(ModelID)
+        )
+        ''')
+        
+        # Create RetrainingDecisions table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS RetrainingDecisions (
+            DecisionID TEXT PRIMARY KEY,
+            ModelID TEXT,
+            DecisionDate TIMESTAMP,
+            ScheduleBasedRetraining BOOLEAN,
+            PerformanceBasedRetraining BOOLEAN,
+            DriftBasedRetraining BOOLEAN,
+            RetrainingRecommended BOOLEAN,
+            RecommendationReason TEXT,
+            LastTrainingDate TIMESTAMP,
+            PerformanceMetricID TEXT,
+            DriftMetricID TEXT,
+            DecisionMadeBy TEXT,
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ModelID) REFERENCES MLModels(ModelID),
+            FOREIGN KEY (PerformanceMetricID) REFERENCES ModelPerformance(PerformanceID),
+            FOREIGN KEY (DriftMetricID) REFERENCES FeatureDrift(DriftID)
+        )
+        ''')
     
     conn.commit()
     conn.close()
@@ -145,13 +242,13 @@ def extract_data() -> pd.DataFrame:
         logger.error(f"Error extracting data from online database: {str(e)}")
         return pd.DataFrame()  # Return empty DataFrame on error
 
-def transform_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Transform the data to calculate statistics."""
+def transform_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Transform the data into training data and aggregated statistics."""
     logger.info("Transforming data")
     
     if df.empty:
         logger.warning("No data to transform")
-        return pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame()
     
     # Calculate transition days
     df['SourceDate'] = pd.to_datetime(df['SourceDate'])
@@ -177,6 +274,37 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     df['TaxCategories'] = df['TaxCategories'].apply(lambda x: json.loads(x) if x else {})
     df['DeductionCategories'] = df['DeductionCategories'].apply(lambda x: json.loads(x) if x else {})
     
+    # Create ETL job ID
+    etl_job_id = str(uuid.uuid4())
+    
+    # 1. Prepare training data
+    training_data = df.copy()
+    
+    # Convert JSON columns back to strings for storage
+    training_data['TaxCategories'] = training_data['TaxCategories'].apply(json.dumps)
+    training_data['DeductionCategories'] = training_data['DeductionCategories'].apply(json.dumps)
+    
+    # Add additional columns
+    # Use UUIDs for RecordIDs to ensure uniqueness across ETL runs
+    training_data['RecordID'] = [f'record-{uuid.uuid4()}' for _ in range(len(training_data))]
+    training_data['ActualTransitionDays'] = training_data['TransitionDays'].astype(int)
+    
+    # Assign data partitions (80% training, 10% validation, 10% test)
+    partitions = ['training'] * 80 + ['validation'] * 10 + ['test'] * 10
+    random.shuffle(partitions)
+    training_data['DataPartition'] = [partitions[i % len(partitions)] for i in range(len(training_data))]
+    
+    training_data['ETLJobID'] = etl_job_id
+    training_data['CreatedAt'] = datetime.now().isoformat()
+    
+    # Select columns for TrainingData table
+    training_data = training_data[[
+        'RecordID', 'TaxFileID', 'FilingType', 'TaxYear', 'TaxCategories', 'DeductionCategories',
+        'ClaimedRefundAmount', 'GeographicRegion', 'ProcessingCenter', 'FilingPeriod',
+        'SourceStatus', 'TargetStatus', 'ActualTransitionDays', 'DataPartition', 'ETLJobID', 'CreatedAt'
+    ]]
+    
+    # 2. Prepare aggregated statistics
     # Group by relevant dimensions
     groupby_cols = [
         'SourceStatus', 'TargetStatus', 'FilingType', 'TaxYear',
@@ -196,8 +324,6 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     
     # Calculate success rate (percentage of transitions completed within expected time)
     # For this example, we'll use a simple heuristic: transitions completed within the 75th percentile
-    
-    # Create a temporary dataframe with success rates
     success_rates = {}
     for name, group in df.groupby(groupby_cols):
         success_rates[name] = (group['TransitionDays'] <= np.percentile(group['TransitionDays'], 75)).mean()
@@ -211,44 +337,59 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
         if group_key in success_rates:
             stats_df.at[i, 'SuccessRate'] = success_rates[group_key]
     
-    # Convert TaxCategories and DeductionCategories back to JSON strings
-    # For simplicity in this example, we'll just use placeholder values
-    stats_df['TaxCategories'] = '{"income": "W2"}'
-    stats_df['DeductionCategories'] = '{"mortgage": "yes"}'
+    # Create segment key (composite key for grouping)
+    stats_df['SegmentKey'] = stats_df.apply(
+        lambda row: f"{row['SourceStatus']}-{row['TargetStatus']}-{row['FilingType']}-{row['GeographicRegion']}-{row['FilingPeriod']}",
+        axis=1
+    )
     
     # Add metadata
     now = datetime.now()
     stats_df['ComputationDate'] = now.isoformat()
-    stats_df['DataPeriodStart'] = (now - timedelta(days=90)).date().isoformat()
-    stats_df['DataPeriodEnd'] = now.date().isoformat()
-    stats_df['ETLJobID'] = str(uuid.uuid4())
-    stats_df['DataQualityScore'] = 0.95  # Placeholder
+    stats_df['ETLJobID'] = etl_job_id
     stats_df['CreatedAt'] = now.isoformat()
-    stats_df['EstimateID'] = [f'estimate-{i+1:03d}' for i in range(len(stats_df))]
+    # Use UUIDs for StatIDs to ensure uniqueness across ETL runs
+    stats_df['StatID'] = [f'stat-{uuid.uuid4()}' for _ in range(len(stats_df))]
     
-    logger.info(f"Transformed data into {len(stats_df)} aggregated records")
-    return stats_df
+    # Removed legacy format as it's not in EntityModel.MD
+    
+    logger.info(f"Transformed data into {len(training_data)} training records and {len(stats_df)} aggregated statistics")
+    return training_data, stats_df
 
-def load_data(df: pd.DataFrame) -> None:
+def load_data(training_data: pd.DataFrame, stats_df: pd.DataFrame, legacy_df=None) -> None:
     """Load the transformed data into the offline database."""
     logger.info("Loading data into offline database")
     
-    if df.empty:
+    if (training_data is None or training_data.empty) and (stats_df is None or stats_df.empty):
         logger.warning("No data to load")
         return
     
     conn = sqlite3.connect(OFFLINE_DB_PATH)
     
-    # Clear existing data
-    conn.execute("DELETE FROM IRSTransitionEstimates")
+    # Load training data
+    if not training_data.empty:
+        # Clear existing data (optional - you might want to keep historical data)
+        # conn.execute("DELETE FROM TrainingData")
+        
+        # Insert new data
+        training_data.to_sql('TrainingData', conn, if_exists='append', index=False)
+        logger.info(f"Loaded {len(training_data)} records into TrainingData table")
     
-    # Insert new data
-    df.to_sql('IRSTransitionEstimates', conn, if_exists='append', index=False)
+    # Load aggregated statistics
+    if not stats_df.empty:
+        # Clear existing data
+        # conn.execute("DELETE FROM TransitionStatistics")
+        
+        # Insert new data
+        stats_df.to_sql('TransitionStatistics', conn, if_exists='append', index=False)
+        logger.info(f"Loaded {len(stats_df)} records into TransitionStatistics table")
+    
+    # Removed IRSTransitionEstimates loading as it's not in EntityModel.MD
     
     conn.commit()
     conn.close()
     
-    logger.info(f"Loaded {len(df)} records into offline database")
+    logger.info("Data loading completed successfully")
 
 def run_etl_process() -> None:
     """Run the complete ETL process."""
@@ -262,10 +403,10 @@ def run_etl_process() -> None:
         raw_data = extract_data()
         
         # Transform data
-        transformed_data = transform_data(raw_data)
+        training_data, stats_df = transform_data(raw_data)
         
         # Load data into offline database
-        load_data(transformed_data)
+        load_data(training_data, stats_df)
         
         logger.info("ETL process completed successfully")
     except Exception as e:

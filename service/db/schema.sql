@@ -49,31 +49,4 @@ CREATE TABLE IF NOT EXISTS TaxRefundPredictions (
     FOREIGN KEY (TaxFileID) REFERENCES TaxFiles(TaxFileID)
 );
 
--- IRSTransitionEstimates table (for AI model training)
-CREATE TABLE IF NOT EXISTS IRSTransitionEstimates (
-    EstimateID TEXT PRIMARY KEY,
-    SourceStatus TEXT,
-    TargetStatus TEXT,
-    FilingType TEXT,
-    TaxYear INTEGER,
-    TaxCategories TEXT,  -- JSON
-    DeductionCategories TEXT,  -- JSON
-    RefundAmountBucket TEXT,
-    GeographicRegion TEXT,
-    ProcessingCenter TEXT,
-    FilingPeriod TEXT,
-    AvgTransitionDays DECIMAL,
-    MedianTransitionDays INTEGER,
-    P25TransitionDays INTEGER,
-    P75TransitionDays INTEGER,
-    MinTransitionDays INTEGER,
-    MaxTransitionDays INTEGER,
-    SampleSize INTEGER,
-    SuccessRate DECIMAL,
-    ComputationDate TIMESTAMP,
-    DataPeriodStart DATE,
-    DataPeriodEnd DATE,
-    ETLJobID TEXT,
-    DataQualityScore DECIMAL,
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- End of schema

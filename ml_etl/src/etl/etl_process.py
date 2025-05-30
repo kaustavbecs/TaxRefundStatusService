@@ -140,7 +140,7 @@ def create_offline_db() -> None:
         )
         ''')
         
-        # Removed IRSTransitionEstimates table as it's not in EntityModel.MD
+        # No legacy tables needed
         
         # Create MLModels table
         cursor.execute('''
@@ -351,12 +351,10 @@ def transform_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     # Use UUIDs for StatIDs to ensure uniqueness across ETL runs
     stats_df['StatID'] = [f'stat-{uuid.uuid4()}' for _ in range(len(stats_df))]
     
-    # Removed legacy format as it's not in EntityModel.MD
-    
     logger.info(f"Transformed data into {len(training_data)} training records and {len(stats_df)} aggregated statistics")
     return training_data, stats_df
 
-def load_data(training_data: pd.DataFrame, stats_df: pd.DataFrame, legacy_df=None) -> None:
+def load_data(training_data: pd.DataFrame, stats_df: pd.DataFrame) -> None:
     """Load the transformed data into the offline database."""
     logger.info("Loading data into offline database")
     
@@ -383,8 +381,6 @@ def load_data(training_data: pd.DataFrame, stats_df: pd.DataFrame, legacy_df=Non
         # Insert new data
         stats_df.to_sql('TransitionStatistics', conn, if_exists='append', index=False)
         logger.info(f"Loaded {len(stats_df)} records into TransitionStatistics table")
-    
-    # Removed IRSTransitionEstimates loading as it's not in EntityModel.MD
     
     conn.commit()
     conn.close()

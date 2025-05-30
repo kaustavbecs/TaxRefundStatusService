@@ -10,7 +10,9 @@ The ML & ETL pipeline performs the following tasks:
 
 2. **Model Training**: Trains a machine learning model on the transformed data to predict tax refund processing times.
 
-3. **API Service**: Hosts the trained model and provides an API for making predictions.
+3. **Model Monitoring**: Continuously evaluates model performance, detects feature drift, and makes retraining recommendations.
+
+4. **API Service**: Hosts the trained model and provides an API for making predictions.
 
 ## Directory Structure
 
@@ -19,10 +21,12 @@ ml_etl/
 ├── data/
 │   ├── raw/           # Raw data extracted from online database
 │   └── processed/     # Processed data for model training
-├── models/            # Trained ML models
+│   └── schema.sql     # Database schema for offline analytics database
+├── models/            # Trained ML models and metadata
+├── logs/              # Log files
 ├── src/
 │   ├── etl/           # ETL process code
-│   ├── ml/            # ML model training and API code
+│   ├── ml/            # ML model training, monitoring, and API code
 │   └── main.py        # Main orchestration script
 ├── train_ml_model.sh  # Script to run ETL and train ML model
 ├── host_ml_model.sh   # Script to host the ML model API
@@ -53,9 +57,9 @@ ml_etl/
 
 Two shell scripts are provided for easier usage:
 
-#### 1. `train_ml_model.sh` - ETL and ML Training
+#### 1. `train_ml_model.sh` - ETL, Monitoring, and ML Training
 
-This script handles the data extraction, transformation, loading (ETL) and model training processes:
+This script handles the data extraction, transformation, loading (ETL), model monitoring, and model training processes:
 
 ```
 ./ml_etl/train_ml_model.sh
@@ -65,6 +69,7 @@ This will:
 - Set up the Python environment
 - Initialize the database with sample data
 - Run the ETL process to prepare data for training
+- Run the model monitoring process
 - Train the ML model
 - Save the model to the models directory
 
@@ -107,6 +112,19 @@ This will:
 - Transform it to calculate statistics
 - Load it into the offline database
 
+#### Running Model Monitoring
+
+```
+python src/main.py --mode monitor
+```
+
+This will:
+- Extract prediction outcomes from the online database
+- Store them in the PredictionOutcomes table
+- Evaluate model performance
+- Detect feature drift
+- Make retraining recommendations
+
 #### Training the ML Model
 
 ```
@@ -134,7 +152,7 @@ This will:
 python src/main.py --mode all
 ```
 
-This will run the ETL process, train the model, and start the API service.
+This will run the ETL process, model monitoring, train the model, and start the API service.
 
 #### Scheduling the Pipeline
 
@@ -144,10 +162,24 @@ python src/main.py --schedule --interval 24
 
 This will schedule the ETL process and model training to run every 24 hours.
 
+## Database Schema
+
+The offline database includes the following tables:
+
+1. **TrainingData**: Raw data for training and evaluation
+2. **TransitionStatistics**: Aggregated statistics for feature engineering
+3. **MLModels**: ML model metadata
+4. **PredictionOutcomes**: Individual prediction results with actual outcomes
+5. **ModelPerformance**: Aggregated performance metrics
+6. **FeatureDrift**: Feature drift detection results
+7. **RetrainingDecisions**: Records of retraining decisions
+
 ## API Endpoints
 
-- `GET /health`: Health check endpoint
+- `GET /health`: Health check endpoint with model and database status
 - `GET /metadata`: Get model metadata
+- `GET /performance`: Get model performance metrics
+- `GET /drift`: Get feature drift information
 - `POST /predict`: Make a prediction
 
 ### Example Prediction Request
@@ -184,10 +216,34 @@ The main Tax Refund Status Service integrates with this ML & ETL pipeline by:
 2. Making API calls to the ML model service for predictions
 3. Displaying the predictions to users in the UI
 
+## Model Monitoring
+
+The model monitoring component performs the following tasks:
+
+1. **Prediction Outcome Collection**:
+   - Extracts prediction data from the online database
+   - Stores individual prediction outcomes in the PredictionOutcomes table
+   - Tracks actual vs. predicted transition days
+
+2. **Performance Evaluation**:
+   - Compares predicted transition days with actual outcomes
+   - Calculates accuracy within 3, 7, and 14 days
+   - Evaluates confidence score correlation
+
+3. **Feature Drift Detection**:
+   - Compares feature distributions between training data and recent predictions
+   - Uses statistical tests to identify significant drift
+   - Calculates overall drift score
+
+4. **Retraining Recommendations**:
+   - Schedule-based: Recommends retraining after 30 days
+   - Performance-based: Recommends retraining if accuracy drops below threshold
+   - Drift-based: Recommends retraining if significant feature drift is detected
+
 ## Future Enhancements
 
 - Implement more sophisticated ML models (e.g., neural networks)
 - Add feature engineering to improve prediction accuracy
 - Implement A/B testing for model comparison
-- Add monitoring and alerting for model performance
+- Add automated model retraining based on recommendations
 - Containerize the ML & ETL pipeline for easier deployment

@@ -113,26 +113,6 @@ WHERE
     DataPartition = 'test'
 """
 
-# Legacy query for backward compatibility
-LEGACY_TRAINING_DATA_QUERY = """
-SELECT 
-    SourceStatus,
-    TargetStatus,
-    FilingType,
-    TaxYear,
-    RefundAmountBucket,
-    GeographicRegion,
-    ProcessingCenter,
-    FilingPeriod,
-    MedianTransitionDays,
-    AvgTransitionDays,
-    P25TransitionDays,
-    P75TransitionDays,
-    SampleSize,
-    SuccessRate
-FROM 
-    IRSTransitionEstimates
-"""
 
 def load_training_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Load training, validation, and test data from the offline database."""
@@ -140,7 +120,6 @@ def load_training_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     
     conn = sqlite3.connect(OFFLINE_DB_PATH)
     
-    # Try to load data from new schema
     try:
         training_df = pd.read_sql_query(TRAINING_DATA_QUERY, conn)
         validation_df = pd.read_sql_query(VALIDATION_DATA_QUERY, conn)
@@ -148,38 +127,14 @@ def load_training_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         
         logger.info(f"Loaded {len(training_df)} training records, {len(validation_df)} validation records, and {len(test_df)} test records")
         
-        if not training_df.empty:
-            return training_df, validation_df, test_df
-    except Exception as e:
-        logger.warning(f"Error loading data from new schema: {str(e)}")
-    
-    # Fall back to legacy schema
-    logger.info("Falling back to legacy schema")
-    try:
-        legacy_df = pd.read_sql_query(LEGACY_TRAINING_DATA_QUERY, conn)
         conn.close()
-        
-        if legacy_df.empty:
-            logger.warning("No data found in legacy schema")
-            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-        
-        # Split legacy data into training (70%), validation (15%), and test (15%)
-        train_idx, temp_idx = train_test_split(range(len(legacy_df)), test_size=0.3, random_state=42)
-        val_idx, test_idx = train_test_split(temp_idx, test_size=0.5, random_state=42)
-        
-        training_df = legacy_df.iloc[train_idx].copy()
-        validation_df = legacy_df.iloc[val_idx].copy()
-        test_df = legacy_df.iloc[test_idx].copy()
-        
-        logger.info(f"Loaded {len(training_df)} training records, {len(validation_df)} validation records, and {len(test_df)} test records from legacy schema")
-        
         return training_df, validation_df, test_df
     except Exception as e:
-        logger.error(f"Error loading data from legacy schema: {str(e)}")
+        logger.error(f"Error loading data: {str(e)}")
         conn.close()
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
-def preprocess_data(df: pd.DataFrame, is_legacy: bool = False) -> Tuple[pd.DataFrame, pd.Series]:
+def preprocess_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     """Preprocess the data for model training."""
     logger.info("Preprocessing data for model training")
     
@@ -187,53 +142,31 @@ def preprocess_data(df: pd.DataFrame, is_legacy: bool = False) -> Tuple[pd.DataF
         logger.warning("No data to preprocess")
         return pd.DataFrame(), pd.Series()
     
-    if is_legacy:
-        # Legacy data preprocessing
-        # Filter for specific transition (Processing -> Approved)
-        df_filtered = df[(df['SourceStatus'] == 'Processing') & (df['TargetStatus'] == 'Approved')].copy()
+    # Filter for specific transition (Processing -> Approved)
+    df_filtered = df[(df['SourceStatus'] == 'Processing') & (df['TargetStatus'] == 'Approved')].copy()
+    
+    if df_filtered.empty:
+        logger.warning("No relevant transitions found in data. Using all transitions instead.")
+        # Use all transitions as a fallback
+        df_filtered = df.copy()
         
         if df_filtered.empty:
-            logger.warning("No relevant transitions found in data. Using all transitions instead.")
-            # Use all transitions as a fallback
-            df_filtered = df.copy()
-            
-            if df_filtered.empty:
-                logger.warning("No transitions found in data at all")
-                return pd.DataFrame(), pd.Series()
-        
-        # Features and target
-        X = df_filtered.drop(['MedianTransitionDays', 'AvgTransitionDays', 'P25TransitionDays',
-                             'P75TransitionDays', 'SourceStatus', 'TargetStatus'], axis=1)
-        
-        # Handle NaN values in the target variable
-        y = df_filtered['MedianTransitionDays']
-    else:
-        # New schema preprocessing
-        # Filter for specific transition (Processing -> Approved)
-        df_filtered = df[(df['SourceStatus'] == 'Processing') & (df['TargetStatus'] == 'Approved')].copy()
-        
-        if df_filtered.empty:
-            logger.warning("No relevant transitions found in data. Using all transitions instead.")
-            # Use all transitions as a fallback
-            df_filtered = df.copy()
-            
-            if df_filtered.empty:
-                logger.warning("No transitions found in data at all")
-                return pd.DataFrame(), pd.Series()
-        
-        # Create refund amount buckets if not already present
-        if 'RefundAmountBucket' not in df_filtered.columns:
-            df_filtered['RefundAmountBucket'] = pd.cut(
-                df_filtered['ClaimedRefundAmount'],
-                bins=[0, 1000, 3000, 5000, float('inf')],
-                labels=['0-1000', '1000-3000', '3000-5000', '5000+']
-            )
-        
-        # Features and target
-        X = df_filtered.drop(['SourceStatus', 'TargetStatus', 'ActualTransitionDays'], axis=1)
-        
-        # Handle NaN values in the target variable
-        y = df_filtered['ActualTransitionDays']
+            logger.warning("No transitions found in data at all")
+            return pd.DataFrame(), pd.Series()
+    
+    # Create refund amount buckets if not already present
+    if 'RefundAmountBucket' not in df_filtered.columns:
+        df_filtered['RefundAmountBucket'] = pd.cut(
+            df_filtered['ClaimedRefundAmount'],
+            bins=[0, 1000, 3000, 5000, float('inf')],
+            labels=['0-1000', '1000-3000', '3000-5000', '5000+']
+        )
+    
+    # Features and target
+    X = df_filtered.drop(['SourceStatus', 'TargetStatus', 'ActualTransitionDays'], axis=1)
+    
+    # Handle NaN values in the target variable
+    y = df_filtered['ActualTransitionDays']
     
     # Check for NaN values
     if y.isna().any():
@@ -516,13 +449,10 @@ def run_model_training() -> None:
         # Load training data
         training_df, validation_df, test_df = load_training_data()
         
-        # Check if we're using legacy data
-        is_legacy = 'MedianTransitionDays' in training_df.columns if not training_df.empty else False
-        
         # Preprocess data
-        X_train, y_train = preprocess_data(training_df, is_legacy)
-        X_val, y_val = preprocess_data(validation_df, is_legacy)
-        X_test, y_test = preprocess_data(test_df, is_legacy)
+        X_train, y_train = preprocess_data(training_df)
+        X_val, y_val = preprocess_data(validation_df)
+        X_test, y_test = preprocess_data(test_df)
         
         if X_train.empty or y_train.empty:
             logger.warning("No training data available")

@@ -36,33 +36,7 @@ export interface TaxRefundPrediction {
     InputFeatures: string;
     CreatedAt: string;
 }
-export interface IRSTransitionEstimate {
-    EstimateID: string;
-    SourceStatus: string;
-    TargetStatus: string;
-    FilingType: string;
-    TaxYear: number;
-    TaxCategories: string;
-    DeductionCategories: string;
-    RefundAmountBucket: string;
-    GeographicRegion: string;
-    ProcessingCenter: string;
-    FilingPeriod: string;
-    AvgTransitionDays: number;
-    MedianTransitionDays: number;
-    P25TransitionDays: number;
-    P75TransitionDays: number;
-    MinTransitionDays: number;
-    MaxTransitionDays: number;
-    SampleSize: number;
-    SuccessRate: number;
-    ComputationDate: string;
-    DataPeriodStart: string;
-    DataPeriodEnd: string;
-    ETLJobID: string;
-    DataQualityScore: number;
-    CreatedAt: string;
-}
+// No legacy interfaces needed
 export interface RefundStatus {
     status: string;
     details: string | null;
@@ -80,7 +54,6 @@ declare class DbService {
     getLatestTaxProcessingEvent(taxFileId: string): Promise<TaxProcessingEvent | null>;
     getTaxProcessingEvents(taxFileId: string): Promise<TaxProcessingEvent[]>;
     getLatestTaxRefundPrediction(taxFileId: string): Promise<TaxRefundPrediction | null>;
-    getIRSTransitionEstimates(sourceStatus: string, targetStatus: string, filingType: string, taxYear: number, geographicRegion: string): Promise<IRSTransitionEstimate | null>;
     createTaxRefundPrediction(taxFileId: string, confidenceScore: number, predictedAvailabilityDate: string, inputFeatures: object): Promise<TaxRefundPrediction>;
     close(): Promise<void>;
 }

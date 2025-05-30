@@ -135,44 +135,40 @@ def get_recent_predictions_with_outcomes(days: int = 30) -> pd.DataFrame:
         # Calculate cutoff date
         cutoff_date = (datetime.now() - timedelta(days=days)).isoformat()
         
-        # Query to get predictions with outcomes
+        # Query to get prediction outcomes
         query = """
-        SELECT 
-            p.PredictionID,
-            p.TaxFileID,
-            p.ConfidenceScore,
-            p.ModelVersion,
-            p.PredictedAvailabilityDate,
-            p.InputFeatures,
-            p.CreatedAt as PredictionDate,
-            e1.StatusUpdateDate as SourceDate,
-            e2.StatusUpdateDate as TargetDate,
-            julianday(e2.StatusUpdateDate) - julianday(e1.StatusUpdateDate) as ActualTransitionDays,
-            julianday(p.PredictedAvailabilityDate) - julianday(e1.StatusUpdateDate) as PredictedTransitionDays
-        FROM 
-            TaxRefundPredictions p
-        JOIN 
-            TaxProcessingEvents e1 ON p.TaxFileID = e1.TaxFileID AND e1.NewStatus = 'Processing'
-        JOIN 
-            TaxProcessingEvents e2 ON p.TaxFileID = e2.TaxFileID AND e2.NewStatus = 'Approved' AND e1.StatusUpdateDate < e2.StatusUpdateDate
-        WHERE 
-            p.CreatedAt > ? AND
-            p.TaxFileID != 'api-request'
-        ORDER BY 
-            p.CreatedAt DESC
+        SELECT
+            OutcomeID,
+            PredictionID,
+            TaxFileID,
+            ConfidenceScore,
+            ModelVersion,
+            PredictedAvailabilityDate,
+            PredictedTransitionDays,
+            ActualTransitionDays,
+            ErrorDays,
+            InputFeatures,
+            CreatedAt
+        FROM
+            PredictionOutcomes
+        WHERE
+            CreatedAt > ?
+        ORDER BY
+            CreatedAt DESC
+        LIMIT 100
         """
         
         df = pd.read_sql_query(query, conn, params=(cutoff_date,))
         conn.close()
         
         if df.empty:
-            logger.warning("No recent predictions with outcomes found")
+            logger.warning("No recent prediction outcomes found")
             return pd.DataFrame()
         
         # Parse InputFeatures JSON
         df['InputFeatures'] = df['InputFeatures'].apply(lambda x: json.loads(x) if x else {})
         
-        logger.info(f"Found {len(df)} recent predictions with outcomes")
+        logger.info(f"Found {len(df)} recent prediction outcomes")
         return df
     except Exception as e:
         logger.error(f"Error getting recent predictions with outcomes: {str(e)}")
@@ -185,8 +181,10 @@ def evaluate_model_performance(predictions_df: pd.DataFrame) -> Dict[str, Any]:
         return {}
     
     try:
-        # Calculate error metrics
-        predictions_df['ErrorDays'] = predictions_df['PredictedTransitionDays'] - predictions_df['ActualTransitionDays']
+        # Calculate error metrics if ErrorDays doesn't exist
+        if 'ErrorDays' not in predictions_df.columns:
+            predictions_df['ErrorDays'] = predictions_df['PredictedTransitionDays'] - predictions_df['ActualTransitionDays']
+        
         predictions_df['AbsErrorDays'] = predictions_df['ErrorDays'].abs()
         
         # Calculate performance metrics
@@ -224,35 +222,15 @@ def get_training_data_sample() -> pd.DataFrame:
     try:
         conn = sqlite3.connect(OFFLINE_DB_PATH)
         
-        # Try new schema first
-        try:
-            query = """
-            SELECT 
-                FilingType, TaxYear, ClaimedRefundAmount, GeographicRegion,
-                ProcessingCenter, FilingPeriod
-            FROM 
-                TrainingData
-            WHERE 
-                DataPartition = 'training'
-            ORDER BY 
-                RANDOM()
-            LIMIT 1000
-            """
-            df = pd.read_sql_query(query, conn)
-            
-            if not df.empty:
-                conn.close()
-                return df
-        except:
-            logger.info("TrainingData table not found, trying legacy schema")
-        
-        # Fall back to legacy schema
         query = """
-        SELECT 
-            FilingType, TaxYear, GeographicRegion, ProcessingCenter, FilingPeriod
-        FROM 
-            IRSTransitionEstimates
-        ORDER BY 
+        SELECT
+            FilingType, TaxYear, ClaimedRefundAmount, GeographicRegion,
+            ProcessingCenter, FilingPeriod
+        FROM
+            TrainingData
+        WHERE
+            DataPartition = 'training'
+        ORDER BY
             RANDOM()
         LIMIT 1000
         """
@@ -456,6 +434,68 @@ def make_retraining_recommendation(
             'decision_date': datetime.now().isoformat()
         }
 
+def store_prediction_outcomes(predictions_df: pd.DataFrame) -> bool:
+    """Store prediction outcomes in the database."""
+    try:
+        if predictions_df.empty:
+            logger.warning("No prediction outcomes to store")
+            return False
+            
+        conn = sqlite3.connect(OFFLINE_DB_PATH)
+        cursor = conn.cursor()
+        
+        # Check if PredictionOutcomes table exists
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='PredictionOutcomes'")
+        has_outcomes_table = cursor.fetchone() is not None
+        
+        if not has_outcomes_table:
+            logger.warning("PredictionOutcomes table does not exist")
+            conn.close()
+            return False
+            
+        # Store each prediction outcome
+        outcomes_stored = 0
+        for _, row in predictions_df.iterrows():
+            outcome_id = f"outcome-{uuid.uuid4()}"
+            
+            # Check if this prediction outcome already exists
+            cursor.execute(
+                "SELECT COUNT(*) FROM PredictionOutcomes WHERE PredictionID = ?",
+                (row['PredictionID'],)
+            )
+            if cursor.fetchone()[0] > 0:
+                continue  # Skip if already exists
+                
+            cursor.execute('''
+            INSERT INTO PredictionOutcomes (
+                OutcomeID, PredictionID, TaxFileID, ConfidenceScore, ModelVersion,
+                PredictedAvailabilityDate, PredictedTransitionDays, ActualTransitionDays,
+                ErrorDays, InputFeatures, CreatedAt
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                outcome_id,
+                row['PredictionID'],
+                row['TaxFileID'],
+                row['ConfidenceScore'],
+                row['ModelVersion'],
+                row['PredictedAvailabilityDate'],
+                row['PredictedTransitionDays'],
+                row['ActualTransitionDays'],
+                row['ErrorDays'],
+                json.dumps(row['InputFeatures']),
+                datetime.now().isoformat()
+            ))
+            outcomes_stored += 1
+            
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"Stored {outcomes_stored} prediction outcomes")
+        return True
+    except Exception as e:
+        logger.error(f"Error storing prediction outcomes: {str(e)}")
+        return False
+
 def store_monitoring_results(
     model_id: str,
     performance_metrics: Dict[str, Any],
@@ -574,7 +614,65 @@ def run_model_monitoring() -> bool:
         # Get model metadata
         model_metadata = get_model_metadata(model_id)
         
-        # Get recent predictions with outcomes
+        # Get recent predictions with outcomes from online database
+        # This would normally be a separate ETL process that copies data from online to offline
+        # For this example, we'll simulate it by directly querying the online database
+        online_db_path = os.environ.get('ONLINE_DB_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../service/db/tax_refund.db')))
+        
+        try:
+            # Connect to online database
+            online_conn = sqlite3.connect(online_db_path)
+            
+            # Calculate cutoff date
+            cutoff_date = (datetime.now() - timedelta(days=30)).isoformat()
+            
+            # Query to get predictions with outcomes
+            query = """
+            SELECT
+                p.PredictionID,
+                p.TaxFileID,
+                p.ConfidenceScore,
+                p.ModelVersion,
+                p.PredictedAvailabilityDate,
+                p.InputFeatures,
+                p.CreatedAt as PredictionDate,
+                e1.StatusUpdateDate as SourceDate,
+                e2.StatusUpdateDate as TargetDate,
+                julianday(e2.StatusUpdateDate) - julianday(e1.StatusUpdateDate) as ActualTransitionDays,
+                julianday(p.PredictedAvailabilityDate) - julianday(e1.StatusUpdateDate) as PredictedTransitionDays
+            FROM
+                TaxRefundPredictions p
+            JOIN
+                TaxProcessingEvents e1 ON p.TaxFileID = e1.TaxFileID AND e1.NewStatus = 'Processing'
+            JOIN
+                TaxProcessingEvents e2 ON p.TaxFileID = e2.TaxFileID AND e2.NewStatus = 'Approved' AND e1.StatusUpdateDate < e2.StatusUpdateDate
+            WHERE
+                p.CreatedAt > ? AND
+                p.TaxFileID != 'api-request'
+            ORDER BY
+                p.CreatedAt DESC
+            """
+            
+            online_df = pd.read_sql_query(query, online_conn, params=(cutoff_date,))
+            online_conn.close()
+            
+            if not online_df.empty:
+                # Parse InputFeatures JSON
+                online_df['InputFeatures'] = online_df['InputFeatures'].apply(lambda x: json.loads(x) if x else {})
+                
+                # Calculate error days
+                online_df['ErrorDays'] = online_df['PredictedTransitionDays'] - online_df['ActualTransitionDays']
+                
+                # Store prediction outcomes in offline database
+                store_prediction_outcomes(online_df)
+                
+                logger.info(f"Processed {len(online_df)} prediction outcomes from online database")
+            else:
+                logger.warning("No recent predictions with outcomes found in online database")
+        except Exception as e:
+            logger.error(f"Error processing online database data: {str(e)}")
+        
+        # Now get prediction outcomes from offline database
         predictions_df = get_recent_predictions_with_outcomes()
         
         # Evaluate model performance

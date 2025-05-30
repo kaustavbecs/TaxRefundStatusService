@@ -24,27 +24,14 @@ logger = logging.getLogger(__name__)
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import modules
-# Use new modules if available, fall back to old ones if not
-try:
-    from src.etl.etl_process_new import run_etl_process
-    logger.info("Using new ETL process")
-except ImportError:
-    from src.etl.etl_process import run_etl_process
-    logger.info("Using legacy ETL process")
+from src.etl.etl_process import run_etl_process
+logger.info("Using ETL process")
 
-try:
-    from src.ml.model_training_new import run_model_training
-    logger.info("Using new model training process")
-except ImportError:
-    from src.ml.model_training import run_model_training
-    logger.info("Using legacy model training process")
+from src.ml.model_training import run_model_training
+logger.info("Using model training process")
 
-try:
-    from src.ml.model_api_new import run_api_server
-    logger.info("Using new model API server")
-except ImportError:
-    from src.ml.model_api import run_api_server
-    logger.info("Using legacy model API server")
+from src.ml.model_api import run_api_server
+logger.info("Using model API server")
 
 def parse_args():
     """Parse command line arguments."""

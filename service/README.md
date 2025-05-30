@@ -155,7 +155,6 @@ The service uses SQLite for data storage. The database file is located at `db/ta
 - TaxFiles: Tax filing information
 - TaxProcessingEvents: Tax processing status updates
 - TaxRefundPredictions: Predictions for refund availability
-- IRSTransitionEstimates: Data for estimating processing times
 
 ## Future Enhancements
 

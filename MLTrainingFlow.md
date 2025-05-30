@@ -68,8 +68,9 @@ The extracted data undergoes several transformations:
 
 Transformed data is loaded into the Offline Database:
 
-- **Target Table**: `IRSTransitionEstimates`
-  - Contains aggregated statistics about transition times
+- **Target Tables**:
+  - `TrainingData`: Raw data for model training
+  - `TransitionStatistics`: Aggregated statistics about transition times
   - Includes metadata about the ETL process
   - Serves as the primary training data source
 
@@ -81,7 +82,7 @@ Transformed data is loaded into the Offline Database:
 
 ### 3.1 Training Data Preparation
 
-- **Data Source**: `IRSTransitionEstimates` table in the Offline DB
+- **Data Source**: `TrainingData` and `TransitionStatistics` tables in the Offline DB
 - **Feature Selection**:
   - **Tax Information**:
     - TaxCategories (JSON): Income types, sources, and amounts
@@ -144,6 +145,11 @@ Transformed data is loaded into the Offline Database:
 
 The system continuously evaluates model performance using the `ModelPerformanceMetrics` table:
 
+- **Data Flow**:
+  - Prediction outcomes are collected from the online database
+  - Stored in the `PredictionOutcomes` table in the offline database
+  - Aggregated metrics are calculated and stored in the `ModelPerformance` table
+|
 - **Basic Metrics**:
   - Mean and median absolute error (days)
   - Accuracy within 3, 7, and 14 days
@@ -282,8 +288,8 @@ A dashboard visualizes:
          │
          ▼
 ┌─────────────────┐
-│  IRSTransition  │
-│  Estimates      │
+│  Training Data  │
+│  & Statistics   │
 └─────────────────┘
          │
          ▼

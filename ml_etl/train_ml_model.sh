@@ -67,24 +67,14 @@ echo "Current directory: $(pwd)"
 
 # Run the ETL process
 echo "Running ETL process..."
-if [ -f "$ML_ETL_DIR/src/main_new.py" ]; then
-    python "$ML_ETL_DIR/src/main_new.py" --mode etl
-else
-    python "$ML_ETL_DIR/src/main.py" --mode etl
-fi
+python "$ML_ETL_DIR/src/main.py" --mode etl
 
-# Run the model monitoring process (if available)
+# Run the model monitoring process
 echo "Running model monitoring..."
-if [ -f "$ML_ETL_DIR/src/main_new.py" ]; then
-    python "$ML_ETL_DIR/src/main_new.py" --mode monitor
-fi
+python "$ML_ETL_DIR/src/main.py" --mode monitor
 
 # Train the ML model
 echo "Training ML model..."
-if [ -f "$ML_ETL_DIR/src/main_new.py" ]; then
-    python "$ML_ETL_DIR/src/main_new.py" --mode train
-else
-    python "$ML_ETL_DIR/src/main.py" --mode train
-fi
+python "$ML_ETL_DIR/src/main.py" --mode train
 
 echo "ML model training completed successfully"

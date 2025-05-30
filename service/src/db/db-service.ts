@@ -57,33 +57,7 @@ export interface TaxRefundPrediction {
   CreatedAt: string;
 }
 
-export interface IRSTransitionEstimate {
-  EstimateID: string;
-  SourceStatus: string;
-  TargetStatus: string;
-  FilingType: string;
-  TaxYear: number;
-  TaxCategories: string; // JSON
-  DeductionCategories: string; // JSON
-  RefundAmountBucket: string;
-  GeographicRegion: string;
-  ProcessingCenter: string;
-  FilingPeriod: string;
-  AvgTransitionDays: number;
-  MedianTransitionDays: number;
-  P25TransitionDays: number;
-  P75TransitionDays: number;
-  MinTransitionDays: number;
-  MaxTransitionDays: number;
-  SampleSize: number;
-  SuccessRate: number;
-  ComputationDate: string;
-  DataPeriodStart: string;
-  DataPeriodEnd: string;
-  ETLJobID: string;
-  DataQualityScore: number;
-  CreatedAt: string;
-}
+// No legacy interfaces needed
 
 export interface RefundStatus {
   status: string;
@@ -189,30 +163,7 @@ class DbService {
     });
   }
 
-  // Get IRS transition estimates for prediction
-  getIRSTransitionEstimates(
-    sourceStatus: string,
-    targetStatus: string,
-    filingType: string,
-    taxYear: number,
-    geographicRegion: string
-  ): Promise<IRSTransitionEstimate | null> {
-    return new Promise((resolve, reject) => {
-      db.get(
-        `SELECT * FROM IRSTransitionEstimates 
-         WHERE SourceStatus = ? AND TargetStatus = ? AND FilingType = ? 
-         AND TaxYear = ? AND GeographicRegion = ?`,
-        [sourceStatus, targetStatus, filingType, taxYear, geographicRegion],
-        (err, row) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve(row as IRSTransitionEstimate || null);
-        }
-      );
-    });
-  }
+  // No legacy methods needed
 
   // Create a new tax refund prediction
   createTaxRefundPrediction(

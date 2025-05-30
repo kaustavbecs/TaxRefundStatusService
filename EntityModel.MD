@@ -138,6 +138,21 @@ CurrentStartDate: Timestamp
 CurrentEndDate: Timestamp
 CreatedAt: Timestamp
 
+# Prediction outcomes for model monitoring
+Table: PredictionOutcomes
+====
+OutcomeID: UUID (PK)
+PredictionID: UUID
+TaxFileID: UUID
+ConfidenceScore: Decimal
+ModelVersion: String
+PredictedAvailabilityDate: Date
+PredictedTransitionDays: Integer
+ActualTransitionDays: Integer
+ErrorDays: Integer
+InputFeatures: JSON
+CreatedAt: Timestamp
+
 # Retraining decisions
 Table: RetrainingDecisions
 ====

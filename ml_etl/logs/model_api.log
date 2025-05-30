@@ -590,3 +590,152 @@
 2025-05-29 21:47:42,168 - src.ml.model_api - INFO -   Confidence Score: 0.50
 2025-05-29 21:47:42,168 - src.ml.model_api - INFO -   Predicted Date: 2025-06-02
 2025-05-29 21:47:42,168 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-29 21:49:30,798 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-29 21:49:30,798 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-29 21:49:30,798 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-29 21:49:30,798 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-29 21:49:30,798 - src.ml.model_api - INFO -   GeographicRegion: Northeast
+2025-05-29 21:49:30,799 - src.ml.model_api - INFO -   ProcessingCenter: Northeast Center
+2025-05-29 21:49:30,799 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-29 21:49:30,799 - src.ml.model_api - INFO -   ClaimedRefundAmount: 3750.0
+2025-05-29 21:49:30,807 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-29 21:49:30,807 - src.ml.model_api - INFO -   Estimated Days: 5
+2025-05-29 21:49:30,807 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-29 21:49:30,807 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-29 21:49:30,807 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-29 21:49:30,815 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-29 21:49:30,815 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-29 21:49:30,815 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-29 21:49:30,815 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-29 21:49:30,816 - src.ml.model_api - INFO -   GeographicRegion: Northeast
+2025-05-29 21:49:30,816 - src.ml.model_api - INFO -   ProcessingCenter: Northeast Center
+2025-05-29 21:49:30,816 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-29 21:49:30,816 - src.ml.model_api - INFO -   ClaimedRefundAmount: 3750.0
+2025-05-29 21:49:30,820 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-29 21:49:30,820 - src.ml.model_api - INFO -   Estimated Days: 5
+2025-05-29 21:49:30,820 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-29 21:49:30,820 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-29 21:49:30,820 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-29 21:49:37,257 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-29 21:49:37,257 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-29 21:49:37,257 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-29 21:49:37,257 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-29 21:49:37,257 - src.ml.model_api - INFO -   GeographicRegion: Northeast
+2025-05-29 21:49:37,257 - src.ml.model_api - INFO -   ProcessingCenter: Northeast Center
+2025-05-29 21:49:37,257 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-29 21:49:37,257 - src.ml.model_api - INFO -   ClaimedRefundAmount: 3750.0
+2025-05-29 21:49:37,267 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-29 21:49:37,267 - src.ml.model_api - INFO -   Estimated Days: 5
+2025-05-29 21:49:37,268 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-29 21:49:37,268 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-29 21:49:37,268 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-29 21:50:14,078 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-29 21:50:14,078 - src.ml.model_api - INFO -   FilingType: Joint
+2025-05-29 21:50:14,078 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-29 21:50:14,079 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-29 21:50:14,079 - src.ml.model_api - INFO -   GeographicRegion: South
+2025-05-29 21:50:14,079 - src.ml.model_api - INFO -   ProcessingCenter: South Center
+2025-05-29 21:50:14,079 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-29 21:50:14,079 - src.ml.model_api - INFO -   ClaimedRefundAmount: 4800.0
+2025-05-29 21:50:14,088 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-29 21:50:14,088 - src.ml.model_api - INFO -   Estimated Days: 5
+2025-05-29 21:50:14,089 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-29 21:50:14,089 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-29 21:50:14,089 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-29 21:50:14,094 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-29 21:50:14,094 - src.ml.model_api - INFO -   FilingType: Joint
+2025-05-29 21:50:14,094 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-29 21:50:14,095 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-29 21:50:14,095 - src.ml.model_api - INFO -   GeographicRegion: South
+2025-05-29 21:50:14,095 - src.ml.model_api - INFO -   ProcessingCenter: South Center
+2025-05-29 21:50:14,095 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-29 21:50:14,095 - src.ml.model_api - INFO -   ClaimedRefundAmount: 4800.0
+2025-05-29 21:50:14,098 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-29 21:50:14,098 - src.ml.model_api - INFO -   Estimated Days: 5
+2025-05-29 21:50:14,098 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-29 21:50:14,098 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-29 21:50:14,098 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-29 21:50:14,488 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-29 21:50:14,488 - src.ml.model_api - INFO -   FilingType: Joint
+2025-05-29 21:50:14,488 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-29 21:50:14,488 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-29 21:50:14,488 - src.ml.model_api - INFO -   GeographicRegion: South
+2025-05-29 21:50:14,488 - src.ml.model_api - INFO -   ProcessingCenter: South Center
+2025-05-29 21:50:14,488 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-29 21:50:14,488 - src.ml.model_api - INFO -   ClaimedRefundAmount: 4800.0
+2025-05-29 21:50:14,498 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-29 21:50:14,498 - src.ml.model_api - INFO -   Estimated Days: 5
+2025-05-29 21:50:14,498 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-29 21:50:14,498 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-29 21:50:14,498 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-29 21:50:14,505 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-29 21:50:14,505 - src.ml.model_api - INFO -   FilingType: Joint
+2025-05-29 21:50:14,505 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-29 21:50:14,505 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-29 21:50:14,505 - src.ml.model_api - INFO -   GeographicRegion: South
+2025-05-29 21:50:14,505 - src.ml.model_api - INFO -   ProcessingCenter: South Center
+2025-05-29 21:50:14,505 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-29 21:50:14,505 - src.ml.model_api - INFO -   ClaimedRefundAmount: 4800.0
+2025-05-29 21:50:14,508 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-29 21:50:14,508 - src.ml.model_api - INFO -   Estimated Days: 5
+2025-05-29 21:50:14,508 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-29 21:50:14,508 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-29 21:50:14,509 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-30 11:58:30,087 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 11:58:30,089 - src.ml.model_api - INFO - Checking for processes using port 9090
+2025-05-30 11:58:30,143 - src.ml.model_api - INFO - Killed any processes using port 9090
+2025-05-30 11:58:30,143 - src.ml.model_api - INFO - Starting API server on port 9090
+2025-05-30 11:58:30,153 - src.ml.model_api - INFO - Loading latest model from /Users/kd/code/TaxRefundStatusService/ml_etl/models/refund_prediction_model_latest.joblib
+2025-05-30 11:58:30,157 - src.ml.model_api - INFO - Loading latest model metadata from /Users/kd/code/TaxRefundStatusService/ml_etl/models/model_metadata_latest.json
+2025-05-30 11:58:30,157 - src.ml.model_api - INFO - Successfully loaded latest model (v3)
+2025-05-30 11:58:39,433 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 11:58:39,433 - src.ml.model_api - INFO -   FilingType: Joint
+2025-05-30 11:58:39,433 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 11:58:39,433 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-30 11:58:39,433 - src.ml.model_api - INFO -   GeographicRegion: South
+2025-05-30 11:58:39,433 - src.ml.model_api - INFO -   ProcessingCenter: South Center
+2025-05-30 11:58:39,433 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 11:58:39,433 - src.ml.model_api - INFO -   ClaimedRefundAmount: 4800.0
+2025-05-30 11:58:39,440 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 11:58:39,440 - src.ml.model_api - INFO -   Estimated Days: 5
+2025-05-30 11:58:39,440 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-30 11:58:39,440 - src.ml.model_api - INFO -   Predicted Date: 2025-06-04
+2025-05-30 11:58:39,440 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-30 11:58:39,450 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 11:58:39,450 - src.ml.model_api - INFO -   FilingType: Joint
+2025-05-30 11:58:39,450 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 11:58:39,450 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-30 11:58:39,450 - src.ml.model_api - INFO -   GeographicRegion: South
+2025-05-30 11:58:39,450 - src.ml.model_api - INFO -   ProcessingCenter: South Center
+2025-05-30 11:58:39,450 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 11:58:39,450 - src.ml.model_api - INFO -   ClaimedRefundAmount: 4800.0
+2025-05-30 11:58:39,454 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 11:58:39,454 - src.ml.model_api - INFO -   Estimated Days: 5
+2025-05-30 11:58:39,454 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-30 11:58:39,454 - src.ml.model_api - INFO -   Predicted Date: 2025-06-04
+2025-05-30 11:58:39,454 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-30 11:58:44,627 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 11:58:44,627 - src.ml.model_api - INFO -   FilingType: Joint
+2025-05-30 11:58:44,627 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 11:58:44,627 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-30 11:58:44,627 - src.ml.model_api - INFO -   GeographicRegion: South
+2025-05-30 11:58:44,627 - src.ml.model_api - INFO -   ProcessingCenter: South Center
+2025-05-30 11:58:44,627 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 11:58:44,627 - src.ml.model_api - INFO -   ClaimedRefundAmount: 4800.0
+2025-05-30 11:58:44,633 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 11:58:44,633 - src.ml.model_api - INFO -   Estimated Days: 5
+2025-05-30 11:58:44,633 - src.ml.model_api - INFO -   Confidence Score: 0.50
+2025-05-30 11:58:44,633 - src.ml.model_api - INFO -   Predicted Date: 2025-06-04
+2025-05-30 11:58:44,633 - src.ml.model_api - INFO -   Model Version: v3
+2025-05-30 12:04:29,161 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 12:04:30,146 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 12:04:30,952 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 12:05:21,510 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 12:05:22,550 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 12:05:23,453 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 13:12:27,572 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 13:12:28,703 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 13:12:29,554 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 13:25:50,627 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 13:25:51,742 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 13:25:52,583 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log

@@ -80,19 +80,23 @@ The enhanced offline database includes the following tables:
    - Model versions, algorithms, and hyperparameters
    - Training data size and dates
 
-4. **ModelPerformance**: Performance metrics for each model evaluation
+4. **PredictionOutcomes**: Individual prediction results with actual outcomes
+   - Stores each prediction with its corresponding actual outcome
+   - Includes confidence scores, model versions, and error metrics
+   - Used for detailed model performance analysis
+
+5. **ModelPerformance**: Aggregated performance metrics for each model evaluation
    - Accuracy, error metrics, and confidence score correlation
    - Separate records for validation, test, and production data
+   - Calculated from PredictionOutcomes data
 
-5. **FeatureDrift**: Feature drift detection results
+6. **FeatureDrift**: Feature drift detection results
    - Drift scores and significant features
    - Baseline and current period information
 
-6. **RetrainingDecisions**: Records of retraining decisions
+7. **RetrainingDecisions**: Records of retraining decisions
    - Schedule-based, performance-based, and drift-based triggers
    - Recommendations and reasons
-
-7. **IRSTransitionEstimates**: Legacy table for backward compatibility
 
 ## Usage
 
@@ -213,7 +217,12 @@ The enhanced API includes the following endpoints:
 
 The model monitoring component performs the following tasks:
 
-1. **Performance Evaluation**:
+1. **Prediction Outcome Collection**:
+   - Extracts prediction data from the online database
+   - Stores individual prediction outcomes in the PredictionOutcomes table
+   - Tracks actual vs. predicted transition days
+
+2. **Performance Evaluation**:
    - Compares predicted transition days with actual outcomes
    - Calculates accuracy within 3, 7, and 14 days
    - Evaluates confidence score correlation

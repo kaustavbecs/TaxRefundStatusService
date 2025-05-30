@@ -417,18 +417,10 @@ async def predict(request: PredictionRequest, conn: sqlite3.Connection = Depends
             'ClaimedRefundAmount': [request.refund_amount]
         }
         
-        # Check if model expects SampleSize and SuccessRate (legacy model)
+        # Add any additional features needed by the model
         if model_metadata and 'feature_list' in model_metadata:
             feature_list = model_metadata['feature_list']
-            if 'SampleSize' in feature_list:
-                input_data['SampleSize'] = [100]  # Default value
-            if 'SuccessRate' in feature_list:
-                input_data['SuccessRate'] = [0.9]  # Default value
-        else:
-            # Add them just in case (legacy model)
-            input_data['SampleSize'] = [100]  # Default value
-            input_data['SuccessRate'] = [0.9]  # Default value
-        
+
         # Log input features
         logger.info(f"Prediction request received with features:")
         for feature, value in input_data.items():
@@ -442,13 +434,9 @@ async def predict(request: PredictionRequest, conn: sqlite3.Connection = Depends
         
         # Calculate confidence score from model metadata if available
         confidence_score = 0.85  # Default
-        if model_metadata:
-            if 'test_metrics' in model_metadata and 'r2' in model_metadata['test_metrics']:
-                # Use R² as a basis for confidence
-                confidence_score = min(0.95, max(0.5, 0.5 + model_metadata['test_metrics']['r2'] * 0.5))
-            elif 'metrics' in model_metadata and 'r2' in model_metadata['metrics']:
-                # Legacy format
-                confidence_score = min(0.95, max(0.5, 0.5 + model_metadata['metrics']['r2'] * 0.5))
+        if model_metadata and 'test_metrics' in model_metadata and 'r2' in model_metadata['test_metrics']:
+            # Use R² as a basis for confidence
+            confidence_score = min(0.95, max(0.5, 0.5 + model_metadata['test_metrics']['r2'] * 0.5))
         
         # Calculate predicted date
         today = datetime.now()
@@ -469,7 +457,7 @@ async def predict(request: PredictionRequest, conn: sqlite3.Connection = Depends
         logger.info(f"  Predicted Date: {predicted_date}")
         logger.info(f"  Model Version: {model_version}")
         
-        # Removed database storage - the service should handle storing predictions
+        # Prediction storage is handled by the service
         
         return response
     

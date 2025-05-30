@@ -1,0 +1,46 @@
+{
+  "model_id": "model-6",
+  "version": 6,
+  "created_at": "2025-05-30T13:12:31.672598",
+  "algorithm": "RandomForestRegressor",
+  "hyperparameters": {
+    "regressor__max_depth": null,
+    "regressor__min_samples_split": 2,
+    "regressor__n_estimators": 50
+  },
+  "feature_list": [
+    "FilingType",
+    "TaxYear",
+    "ClaimedRefundAmount",
+    "GeographicRegion",
+    "ProcessingCenter",
+    "FilingPeriod",
+    "RefundAmountBucket"
+  ],
+  "training_metrics": {
+    "mae": 9.961817578717579,
+    "rmse": 12.932367675386523,
+    "r2": 0.16108480291240868,
+    "accuracy_within_7_days": 0.4,
+    "training_data_size": 119
+  },
+  "test_metrics": {
+    "mae": 5.0417336119749425,
+    "rmse": 7.3336020359288385,
+    "r2": -0.15482218328115716,
+    "accuracy_within_3_days": 0.5714285714285714,
+    "accuracy_within_7_days": 0.7142857142857143,
+    "accuracy_within_14_days": 0.9285714285714286,
+    "sample_size": 14
+  },
+  "feature_importance": {
+    "FilingType": 0.006204106519674854,
+    "TaxYear": 0.005856762852581897,
+    "ClaimedRefundAmount": 0.03139951420801707,
+    "GeographicRegion": 0.021773355088462575,
+    "ProcessingCenter": 0.010191461666984224,
+    "FilingPeriod": 0.04446047103342183,
+    "RefundAmountBucket": 0.005031725900682098
+  },
+  "description": "Tax refund processing time prediction model"
+}

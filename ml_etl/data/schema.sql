@@ -92,6 +92,21 @@ CREATE TABLE IF NOT EXISTS FeatureDrift (
     FOREIGN KEY (ModelID) REFERENCES MLModels(ModelID)
 );
 
+-- Prediction outcomes for model monitoring
+CREATE TABLE IF NOT EXISTS PredictionOutcomes (
+    OutcomeID TEXT PRIMARY KEY,
+    PredictionID TEXT,
+    TaxFileID TEXT,
+    ConfidenceScore DECIMAL,
+    ModelVersion TEXT,
+    PredictedAvailabilityDate DATE,
+    PredictedTransitionDays INTEGER,
+    ActualTransitionDays INTEGER,
+    ErrorDays INTEGER,
+    InputFeatures TEXT,  -- JSON
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Retraining decisions
 CREATE TABLE IF NOT EXISTS RetrainingDecisions (
     DecisionID TEXT PRIMARY KEY,
@@ -110,33 +125,4 @@ CREATE TABLE IF NOT EXISTS RetrainingDecisions (
     FOREIGN KEY (ModelID) REFERENCES MLModels(ModelID),
     FOREIGN KEY (PerformanceMetricID) REFERENCES ModelPerformance(PerformanceID),
     FOREIGN KEY (DriftMetricID) REFERENCES FeatureDrift(DriftID)
-);
-
--- Legacy table for backward compatibility
-CREATE TABLE IF NOT EXISTS IRSTransitionEstimates (
-    EstimateID TEXT PRIMARY KEY,
-    SourceStatus TEXT,
-    TargetStatus TEXT,
-    FilingType TEXT,
-    TaxYear INTEGER,
-    TaxCategories TEXT,
-    DeductionCategories TEXT,
-    RefundAmountBucket TEXT,
-    GeographicRegion TEXT,
-    ProcessingCenter TEXT,
-    FilingPeriod TEXT,
-    AvgTransitionDays DECIMAL,
-    MedianTransitionDays INTEGER,
-    P25TransitionDays INTEGER,
-    P75TransitionDays INTEGER,
-    MinTransitionDays INTEGER,
-    MaxTransitionDays INTEGER,
-    SampleSize INTEGER,
-    SuccessRate DECIMAL,
-    ComputationDate TIMESTAMP,
-    DataPeriodStart DATE,
-    DataPeriodEnd DATE,
-    ETLJobID TEXT,
-    DataQualityScore DECIMAL,
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -120,20 +120,7 @@ class DbService {
             });
         });
     }
-    // Get IRS transition estimates for prediction
-    getIRSTransitionEstimates(sourceStatus, targetStatus, filingType, taxYear, geographicRegion) {
-        return new Promise((resolve, reject) => {
-            db.get(`SELECT * FROM IRSTransitionEstimates 
-         WHERE SourceStatus = ? AND TargetStatus = ? AND FilingType = ? 
-         AND TaxYear = ? AND GeographicRegion = ?`, [sourceStatus, targetStatus, filingType, taxYear, geographicRegion], (err, row) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(row || null);
-            });
-        });
-    }
+    // No legacy methods needed
     // Create a new tax refund prediction
     createTaxRefundPrediction(taxFileId, confidenceScore, predictedAvailabilityDate, inputFeatures) {
         return new Promise((resolve, reject) => {

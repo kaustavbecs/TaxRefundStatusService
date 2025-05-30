@@ -9,7 +9,6 @@ and serve predictions for tax refund processing times.
 import os
 import json
 import logging
-import sqlite3
 import joblib
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
@@ -58,8 +57,7 @@ logger.propagate = False
 
 logger.info(f"Logging to file: {log_file_path}")
 
-# Database and model paths
-OFFLINE_DB_PATH = os.environ.get('OFFLINE_DB_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../ml_etl/data/processed/tax_refund_analytics.db')))
+# Model paths
 MODEL_DIR = os.environ.get('MODEL_DIR', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../ml_etl/models')))
 LATEST_MODEL_PATH = os.path.join(MODEL_DIR, 'refund_prediction_model_latest.joblib')
 LATEST_METADATA_PATH = os.path.join(MODEL_DIR, 'model_metadata_latest.json')
@@ -68,7 +66,6 @@ LATEST_METADATA_PATH = os.path.join(MODEL_DIR, 'model_metadata_latest.json')
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 # Print paths for debugging
-print(f"Offline DB path: {OFFLINE_DB_PATH}")
 print(f"Model directory: {MODEL_DIR}")
 print(f"Latest model path: {LATEST_MODEL_PATH}")
 
@@ -186,18 +183,6 @@ async def health_check():
     
     has_latest = os.path.exists(LATEST_MODEL_PATH)
     
-    # Check database connection
-    db_status = "unknown"
-    try:
-        conn = sqlite3.connect(OFFLINE_DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1")
-        cursor.fetchone()
-        conn.close()
-        db_status = "connected"
-    except Exception as e:
-        db_status = f"error: {str(e)}"
-    
     return {
         "status": "ok" if model is not None else "error",
         "model_loaded": model is not None,
@@ -205,7 +190,6 @@ async def health_check():
         "model_id": model_id,
         "latest_available": has_latest,
         "available_versions": available_models,
-        "database_status": db_status,
         "timestamp": datetime.now().isoformat()
     }
 

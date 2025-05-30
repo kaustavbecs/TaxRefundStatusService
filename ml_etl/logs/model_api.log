@@ -1215,3 +1215,150 @@
 2025-05-30 19:10:56,981 - src.ml.model_api - INFO -   Confidence Score: 0.95
 2025-05-30 19:10:56,981 - src.ml.model_api - INFO -   Predicted Date: 2025-06-02
 2025-05-30 19:10:56,981 - src.ml.model_api - INFO -   Model Version: v10
+2025-05-30 19:14:27,326 - src.ml.model_api - INFO - Logging to file: /Users/kd/code/TaxRefundStatusService/ml_etl/logs/model_api.log
+2025-05-30 19:14:27,328 - src.ml.model_api - INFO - Checking for processes using port 9090
+2025-05-30 19:14:27,377 - src.ml.model_api - INFO - Killed any processes using port 9090
+2025-05-30 19:14:27,377 - src.ml.model_api - INFO - Starting API server on port 9090
+2025-05-30 19:14:27,391 - src.ml.model_api - INFO - Loading latest model from /Users/kd/code/TaxRefundStatusService/ml_etl/models/refund_prediction_model_latest.joblib
+2025-05-30 19:14:27,403 - src.ml.model_api - INFO - Loading latest model metadata from /Users/kd/code/TaxRefundStatusService/ml_etl/models/model_metadata_latest.json
+2025-05-30 19:14:27,403 - src.ml.model_api - INFO - Successfully loaded latest model (v10)
+2025-05-30 19:14:30,240 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 19:14:30,240 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-30 19:14:30,240 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 19:14:30,240 - src.ml.model_api - INFO -   RefundAmountBucket: 1000-3000
+2025-05-30 19:14:30,241 - src.ml.model_api - INFO -   GeographicRegion: Midwest
+2025-05-30 19:14:30,241 - src.ml.model_api - INFO -   ProcessingCenter: Midwest Center
+2025-05-30 19:14:30,241 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 19:14:30,241 - src.ml.model_api - INFO -   ClaimedRefundAmount: 1950.0
+2025-05-30 19:14:30,264 - src.ml.model_api - INFO - Tree prediction std dev: 0.00, resulting in confidence: 0.95
+2025-05-30 19:14:30,264 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 19:14:30,264 - src.ml.model_api - INFO -   Estimated Days: 3
+2025-05-30 19:14:30,264 - src.ml.model_api - INFO -   Confidence Score: 0.95
+2025-05-30 19:14:30,264 - src.ml.model_api - INFO -   Predicted Date: 2025-06-02
+2025-05-30 19:14:30,264 - src.ml.model_api - INFO -   Model Version: v10
+2025-05-30 19:14:30,268 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 19:14:30,268 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-30 19:14:30,268 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 19:14:30,268 - src.ml.model_api - INFO -   RefundAmountBucket: 1000-3000
+2025-05-30 19:14:30,268 - src.ml.model_api - INFO -   GeographicRegion: Midwest
+2025-05-30 19:14:30,268 - src.ml.model_api - INFO -   ProcessingCenter: Midwest Center
+2025-05-30 19:14:30,268 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 19:14:30,268 - src.ml.model_api - INFO -   ClaimedRefundAmount: 1950.0
+2025-05-30 19:14:30,277 - src.ml.model_api - INFO - Tree prediction std dev: 0.00, resulting in confidence: 0.95
+2025-05-30 19:14:30,277 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 19:14:30,277 - src.ml.model_api - INFO -   Estimated Days: 3
+2025-05-30 19:14:30,277 - src.ml.model_api - INFO -   Confidence Score: 0.95
+2025-05-30 19:14:30,277 - src.ml.model_api - INFO -   Predicted Date: 2025-06-02
+2025-05-30 19:14:30,277 - src.ml.model_api - INFO -   Model Version: v10
+2025-05-30 19:14:51,864 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 19:14:51,864 - src.ml.model_api - INFO -   FilingType: Joint
+2025-05-30 19:14:51,864 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 19:14:51,864 - src.ml.model_api - INFO -   RefundAmountBucket: 5000+
+2025-05-30 19:14:51,864 - src.ml.model_api - INFO -   GeographicRegion: West
+2025-05-30 19:14:51,864 - src.ml.model_api - INFO -   ProcessingCenter: West Center
+2025-05-30 19:14:51,864 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 19:14:51,864 - src.ml.model_api - INFO -   ClaimedRefundAmount: 5600.0
+2025-05-30 19:14:51,886 - src.ml.model_api - INFO - Tree prediction std dev: 0.00, resulting in confidence: 0.95
+2025-05-30 19:14:51,886 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 19:14:51,886 - src.ml.model_api - INFO -   Estimated Days: 4
+2025-05-30 19:14:51,886 - src.ml.model_api - INFO -   Confidence Score: 0.95
+2025-05-30 19:14:51,886 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-30 19:14:51,886 - src.ml.model_api - INFO -   Model Version: v10
+2025-05-30 19:14:51,890 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 19:14:51,890 - src.ml.model_api - INFO -   FilingType: Joint
+2025-05-30 19:14:51,890 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 19:14:51,890 - src.ml.model_api - INFO -   RefundAmountBucket: 5000+
+2025-05-30 19:14:51,890 - src.ml.model_api - INFO -   GeographicRegion: West
+2025-05-30 19:14:51,890 - src.ml.model_api - INFO -   ProcessingCenter: West Center
+2025-05-30 19:14:51,890 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 19:14:51,890 - src.ml.model_api - INFO -   ClaimedRefundAmount: 5600.0
+2025-05-30 19:14:51,898 - src.ml.model_api - INFO - Tree prediction std dev: 0.00, resulting in confidence: 0.95
+2025-05-30 19:14:51,898 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 19:14:51,898 - src.ml.model_api - INFO -   Estimated Days: 4
+2025-05-30 19:14:51,898 - src.ml.model_api - INFO -   Confidence Score: 0.95
+2025-05-30 19:14:51,898 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-30 19:14:51,898 - src.ml.model_api - INFO -   Model Version: v10
+2025-05-30 19:15:01,079 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 19:15:01,079 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-30 19:15:01,079 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 19:15:01,079 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-30 19:15:01,079 - src.ml.model_api - INFO -   GeographicRegion: Northeast
+2025-05-30 19:15:01,079 - src.ml.model_api - INFO -   ProcessingCenter: Northeast Center
+2025-05-30 19:15:01,079 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 19:15:01,079 - src.ml.model_api - INFO -   ClaimedRefundAmount: 3750.0
+2025-05-30 19:15:01,103 - src.ml.model_api - INFO - Tree prediction std dev: 0.10, resulting in confidence: 0.94
+2025-05-30 19:15:01,103 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 19:15:01,103 - src.ml.model_api - INFO -   Estimated Days: 4
+2025-05-30 19:15:01,103 - src.ml.model_api - INFO -   Confidence Score: 0.94
+2025-05-30 19:15:01,103 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-30 19:15:01,103 - src.ml.model_api - INFO -   Model Version: v10
+2025-05-30 19:15:01,106 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 19:15:01,106 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-30 19:15:01,106 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 19:15:01,106 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-30 19:15:01,106 - src.ml.model_api - INFO -   GeographicRegion: Northeast
+2025-05-30 19:15:01,106 - src.ml.model_api - INFO -   ProcessingCenter: Northeast Center
+2025-05-30 19:15:01,106 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 19:15:01,106 - src.ml.model_api - INFO -   ClaimedRefundAmount: 3750.0
+2025-05-30 19:15:01,115 - src.ml.model_api - INFO - Tree prediction std dev: 0.10, resulting in confidence: 0.94
+2025-05-30 19:15:01,115 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 19:15:01,116 - src.ml.model_api - INFO -   Estimated Days: 4
+2025-05-30 19:15:01,116 - src.ml.model_api - INFO -   Confidence Score: 0.94
+2025-05-30 19:15:01,116 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-30 19:15:01,116 - src.ml.model_api - INFO -   Model Version: v10
+2025-05-30 19:15:01,125 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 19:15:01,125 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-30 19:15:01,125 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 19:15:01,125 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-30 19:15:01,125 - src.ml.model_api - INFO -   GeographicRegion: Northeast
+2025-05-30 19:15:01,125 - src.ml.model_api - INFO -   ProcessingCenter: Northeast Center
+2025-05-30 19:15:01,125 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 19:15:01,125 - src.ml.model_api - INFO -   ClaimedRefundAmount: 3750.0
+2025-05-30 19:15:01,134 - src.ml.model_api - INFO - Tree prediction std dev: 0.10, resulting in confidence: 0.94
+2025-05-30 19:15:01,134 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 19:15:01,134 - src.ml.model_api - INFO -   Estimated Days: 4
+2025-05-30 19:15:01,134 - src.ml.model_api - INFO -   Confidence Score: 0.94
+2025-05-30 19:15:01,134 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-30 19:15:01,134 - src.ml.model_api - INFO -   Model Version: v10
+2025-05-30 19:15:01,138 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 19:15:01,138 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-30 19:15:01,138 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 19:15:01,138 - src.ml.model_api - INFO -   RefundAmountBucket: 3000-5000
+2025-05-30 19:15:01,138 - src.ml.model_api - INFO -   GeographicRegion: Northeast
+2025-05-30 19:15:01,138 - src.ml.model_api - INFO -   ProcessingCenter: Northeast Center
+2025-05-30 19:15:01,138 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 19:15:01,138 - src.ml.model_api - INFO -   ClaimedRefundAmount: 3750.0
+2025-05-30 19:15:01,146 - src.ml.model_api - INFO - Tree prediction std dev: 0.10, resulting in confidence: 0.94
+2025-05-30 19:15:01,146 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 19:15:01,146 - src.ml.model_api - INFO -   Estimated Days: 4
+2025-05-30 19:15:01,146 - src.ml.model_api - INFO -   Confidence Score: 0.94
+2025-05-30 19:15:01,146 - src.ml.model_api - INFO -   Predicted Date: 2025-06-03
+2025-05-30 19:15:01,146 - src.ml.model_api - INFO -   Model Version: v10
+2025-05-30 19:15:10,636 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 19:15:10,636 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-30 19:15:10,636 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 19:15:10,636 - src.ml.model_api - INFO -   RefundAmountBucket: 1000-3000
+2025-05-30 19:15:10,636 - src.ml.model_api - INFO -   GeographicRegion: West
+2025-05-30 19:15:10,637 - src.ml.model_api - INFO -   ProcessingCenter: West Center
+2025-05-30 19:15:10,637 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 19:15:10,637 - src.ml.model_api - INFO -   ClaimedRefundAmount: 2200.0
+2025-05-30 19:15:10,661 - src.ml.model_api - INFO - Tree prediction std dev: 0.00, resulting in confidence: 0.95
+2025-05-30 19:15:10,662 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 19:15:10,662 - src.ml.model_api - INFO -   Estimated Days: 3
+2025-05-30 19:15:10,662 - src.ml.model_api - INFO -   Confidence Score: 0.95
+2025-05-30 19:15:10,662 - src.ml.model_api - INFO -   Predicted Date: 2025-06-02
+2025-05-30 19:15:10,662 - src.ml.model_api - INFO -   Model Version: v10
+2025-05-30 19:15:10,665 - src.ml.model_api - INFO - Prediction request received with features:
+2025-05-30 19:15:10,665 - src.ml.model_api - INFO -   FilingType: Individual
+2025-05-30 19:15:10,665 - src.ml.model_api - INFO -   TaxYear: 2024
+2025-05-30 19:15:10,665 - src.ml.model_api - INFO -   RefundAmountBucket: 1000-3000
+2025-05-30 19:15:10,665 - src.ml.model_api - INFO -   GeographicRegion: West
+2025-05-30 19:15:10,665 - src.ml.model_api - INFO -   ProcessingCenter: West Center
+2025-05-30 19:15:10,665 - src.ml.model_api - INFO -   FilingPeriod: Late
+2025-05-30 19:15:10,665 - src.ml.model_api - INFO -   ClaimedRefundAmount: 2200.0
+2025-05-30 19:15:10,674 - src.ml.model_api - INFO - Tree prediction std dev: 0.00, resulting in confidence: 0.95
+2025-05-30 19:15:10,674 - src.ml.model_api - INFO - Prediction outcome:
+2025-05-30 19:15:10,674 - src.ml.model_api - INFO -   Estimated Days: 3
+2025-05-30 19:15:10,674 - src.ml.model_api - INFO -   Confidence Score: 0.95
+2025-05-30 19:15:10,674 - src.ml.model_api - INFO -   Predicted Date: 2025-06-02
+2025-05-30 19:15:10,674 - src.ml.model_api - INFO -   Model Version: v10

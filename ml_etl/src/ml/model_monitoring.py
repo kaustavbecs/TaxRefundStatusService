@@ -434,68 +434,6 @@ def make_retraining_recommendation(
             'decision_date': datetime.now().isoformat()
         }
 
-def store_prediction_outcomes(predictions_df: pd.DataFrame) -> bool:
-    """Store prediction outcomes in the database."""
-    try:
-        if predictions_df.empty:
-            logger.warning("No prediction outcomes to store")
-            return False
-            
-        conn = sqlite3.connect(OFFLINE_DB_PATH)
-        cursor = conn.cursor()
-        
-        # Check if PredictionOutcomes table exists
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='PredictionOutcomes'")
-        has_outcomes_table = cursor.fetchone() is not None
-        
-        if not has_outcomes_table:
-            logger.warning("PredictionOutcomes table does not exist")
-            conn.close()
-            return False
-            
-        # Store each prediction outcome
-        outcomes_stored = 0
-        for _, row in predictions_df.iterrows():
-            outcome_id = f"outcome-{uuid.uuid4()}"
-            
-            # Check if this prediction outcome already exists
-            cursor.execute(
-                "SELECT COUNT(*) FROM PredictionOutcomes WHERE PredictionID = ?",
-                (row['PredictionID'],)
-            )
-            if cursor.fetchone()[0] > 0:
-                continue  # Skip if already exists
-                
-            cursor.execute('''
-            INSERT INTO PredictionOutcomes (
-                OutcomeID, PredictionID, TaxFileID, ConfidenceScore, ModelVersion,
-                PredictedAvailabilityDate, PredictedTransitionDays, ActualTransitionDays,
-                ErrorDays, InputFeatures, CreatedAt
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                outcome_id,
-                row['PredictionID'],
-                row['TaxFileID'],
-                row['ConfidenceScore'],
-                row['ModelVersion'],
-                row['PredictedAvailabilityDate'],
-                row['PredictedTransitionDays'],
-                row['ActualTransitionDays'],
-                row['ErrorDays'],
-                json.dumps(row['InputFeatures']),
-                datetime.now().isoformat()
-            ))
-            outcomes_stored += 1
-            
-        conn.commit()
-        conn.close()
-        
-        logger.info(f"Stored {outcomes_stored} prediction outcomes")
-        return True
-    except Exception as e:
-        logger.error(f"Error storing prediction outcomes: {str(e)}")
-        return False
-
 def store_monitoring_results(
     model_id: str,
     performance_metrics: Dict[str, Any],

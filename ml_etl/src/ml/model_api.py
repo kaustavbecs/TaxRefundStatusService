@@ -102,27 +102,7 @@ class PredictionResponse(BaseModel):
     predicted_date: str = Field(..., description="Predicted date of completion")
     model_version: str = Field(..., description="Version of the model used for prediction")
 
-class FeatureDriftResponse(BaseModel):
-    drift_detected: bool = Field(..., description="Whether feature drift has been detected")
-    drift_score: float = Field(..., description="Feature drift score (0-1)")
-    significant_features: List[str] = Field(..., description="Features with significant drift")
-    detection_date: str = Field(..., description="Date when drift was last detected")
 
-class ModelPerformanceResponse(BaseModel):
-    model_version: str = Field(..., description="Model version")
-    accuracy_within_7_days: float = Field(..., description="Percentage of predictions within 7 days of actual")
-    mean_absolute_error_days: float = Field(..., description="Mean absolute error in days")
-    evaluation_date: str = Field(..., description="Date of evaluation")
-    sample_size: int = Field(..., description="Number of samples used for evaluation")
-
-def get_db_connection():
-    """Get a connection to the offline database."""
-    conn = sqlite3.connect(OFFLINE_DB_PATH)
-    conn.row_factory = sqlite3.Row  # Return rows as dictionaries
-    try:
-        yield conn
-    finally:
-        conn.close()
 
 @app.on_event("startup")
 async def startup_event():
@@ -237,135 +217,6 @@ async def get_metadata():
     
     return model_metadata
 
-@app.get("/performance", response_model=ModelPerformanceResponse)
-async def get_performance(conn: sqlite3.Connection = Depends(get_db_connection)):
-    """Get model performance metrics."""
-    if model_id is None:
-        raise HTTPException(status_code=404, detail="Model not found")
-    
-    try:
-        # Check if ModelPerformance table exists
-        cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ModelPerformance'")
-        if cursor.fetchone() is None:
-            # Fall back to metadata
-            if model_metadata and 'test_metrics' in model_metadata:
-                return {
-                    "model_version": model_version,
-                    "accuracy_within_7_days": model_metadata['test_metrics'].get('accuracy_within_7_days', 0.0),
-                    "mean_absolute_error_days": model_metadata['test_metrics'].get('mae', 0.0),
-                    "evaluation_date": model_metadata.get('created_at', datetime.now().isoformat()),
-                    "sample_size": model_metadata['test_metrics'].get('sample_size', 0)
-                }
-            else:
-                raise HTTPException(status_code=404, detail="Performance metrics not found")
-        
-        # Query performance metrics
-        cursor.execute("""
-        SELECT 
-            m.ModelVersion, 
-            p.AccuracyWithin7Days, 
-            p.MeanAbsoluteErrorDays,
-            p.EvaluationDate,
-            p.SampleSize
-        FROM 
-            ModelPerformance p
-        JOIN 
-            MLModels m ON p.ModelID = m.ModelID
-        WHERE 
-            m.ModelID = ?
-        ORDER BY 
-            p.EvaluationDate DESC
-        LIMIT 1
-        """, (model_id,))
-        
-        row = cursor.fetchone()
-        if row is None:
-            # Fall back to metadata
-            if model_metadata and 'test_metrics' in model_metadata:
-                return {
-                    "model_version": model_version,
-                    "accuracy_within_7_days": model_metadata['test_metrics'].get('accuracy_within_7_days', 0.0),
-                    "mean_absolute_error_days": model_metadata['test_metrics'].get('mae', 0.0),
-                    "evaluation_date": model_metadata.get('created_at', datetime.now().isoformat()),
-                    "sample_size": model_metadata['test_metrics'].get('sample_size', 0)
-                }
-            else:
-                raise HTTPException(status_code=404, detail="Performance metrics not found")
-        
-        return {
-            "model_version": row['ModelVersion'],
-            "accuracy_within_7_days": row['AccuracyWithin7Days'],
-            "mean_absolute_error_days": row['MeanAbsoluteErrorDays'],
-            "evaluation_date": row['EvaluationDate'],
-            "sample_size": row['SampleSize']
-        }
-    except Exception as e:
-        logger.error(f"Error getting performance metrics: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error getting performance metrics: {str(e)}")
-
-@app.get("/drift", response_model=FeatureDriftResponse)
-async def get_drift(conn: sqlite3.Connection = Depends(get_db_connection)):
-    """Get feature drift information."""
-    if model_id is None:
-        raise HTTPException(status_code=404, detail="Model not found")
-    
-    try:
-        # Check if FeatureDrift table exists
-        cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='FeatureDrift'")
-        if cursor.fetchone() is None:
-            # Return default values
-            return {
-                "drift_detected": False,
-                "drift_score": 0.0,
-                "significant_features": [],
-                "detection_date": datetime.now().isoformat()
-            }
-        
-        # Query drift information
-        cursor.execute("""
-        SELECT 
-            DriftDetected,
-            FeatureDriftScore,
-            SignificantFeatures,
-            DetectionDate
-        FROM 
-            FeatureDrift
-        WHERE 
-            ModelID = ?
-        ORDER BY 
-            DetectionDate DESC
-        LIMIT 1
-        """, (model_id,))
-        
-        row = cursor.fetchone()
-        if row is None:
-            # Return default values
-            return {
-                "drift_detected": False,
-                "drift_score": 0.0,
-                "significant_features": [],
-                "detection_date": datetime.now().isoformat()
-            }
-        
-        # Parse significant features from JSON
-        significant_features = []
-        if row['SignificantFeatures']:
-            try:
-                significant_features = json.loads(row['SignificantFeatures'])
-            except:
-                significant_features = []
-        
-        return {
-            "drift_detected": bool(row['DriftDetected']),
-            "drift_score": float(row['FeatureDriftScore']),
-            "significant_features": significant_features,
-            "detection_date": row['DetectionDate']
-        }
-    except Exception as e:
-        logger.error(f"Error getting drift information: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error getting drift information: {str(e)}")
 
 def determine_refund_amount_bucket(amount: float) -> str:
     """Determine the refund amount bucket based on the amount."""
@@ -393,7 +244,7 @@ def determine_filing_period(filing_date: Optional[datetime] = None) -> str:
         return "Late"
 
 @app.post("/predict", response_model=PredictionResponse)
-async def predict(request: PredictionRequest, conn: sqlite3.Connection = Depends(get_db_connection)):
+async def predict(request: PredictionRequest):
     """Predict tax refund processing time."""
     global model, model_metadata, model_version, model_id
     
@@ -429,14 +280,46 @@ async def predict(request: PredictionRequest, conn: sqlite3.Connection = Depends
         import pandas as pd
         input_df = pd.DataFrame(input_data)
         
-        # Make prediction
+        # Make prediction using the model
         predicted_days = int(model.predict(input_df)[0])
         
-        # Calculate confidence score from model metadata if available
-        confidence_score = 0.85  # Default
-        if model_metadata and 'test_metrics' in model_metadata and 'r2' in model_metadata['test_metrics']:
-            # Use R² as a basis for confidence
-            confidence_score = min(0.95, max(0.5, 0.5 + model_metadata['test_metrics']['r2'] * 0.5))
+        # Calculate prediction-specific confidence score using the RandomForestRegressor
+        try:
+            # Access the RandomForestRegressor from the pipeline
+            # Based on model_training.py, the structure is:
+            # Pipeline(steps=[('preprocessor', ColumnTransformer(...)), ('regressor', RandomForestRegressor(...))])
+            rf = model.named_steps['regressor']
+            
+            # Transform the input data using the preprocessor
+            preprocessor = model.named_steps['preprocessor']
+            transformed_data = preprocessor.transform(input_df)
+            
+            # Get predictions from all trees in the forest
+            tree_predictions = [tree.predict(transformed_data)[0] for tree in rf.estimators_]
+            
+            # Calculate standard deviation of predictions across trees
+            # Higher variance/std_dev means lower confidence
+            mean_prediction = sum(tree_predictions) / len(tree_predictions)
+            variance = sum((pred - mean_prediction) ** 2 for pred in tree_predictions) / len(tree_predictions)
+            std_dev = variance ** 0.5
+            
+            # Convert std_dev to a confidence score (0.5-0.95)
+            # Lower std_dev = higher confidence
+            max_expected_std = 3.0  # Adjust based on your data's scale
+            confidence_score = 0.95 - min(0.45, (std_dev / max_expected_std) * 0.45)
+            
+            # Round to 2 decimal places for readability
+            confidence_score = round(confidence_score, 2)
+            
+            logger.info(f"Tree prediction std dev: {std_dev:.2f}, resulting in confidence: {confidence_score}")
+            
+        except Exception as e:
+            # Fallback to metadata-based confidence if anything goes wrong
+            logger.warning(f"Error calculating prediction-specific confidence: {str(e)}")
+            confidence_score = 0.85  # Default
+            if model_metadata and 'test_metrics' in model_metadata and 'r2' in model_metadata['test_metrics']:
+                # Use R² as a basis for confidence
+                confidence_score = min(0.95, max(0.5, 0.5 + model_metadata['test_metrics']['r2'] * 0.5))
         
         # Calculate predicted date
         today = datetime.now()

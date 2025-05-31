@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { TaxFile, RefundStatus, TaxProcessingEvent } from '../types';
+import { TaxFile, RefundStatus, TaxProcessingEvent, ActionGuidance } from '../types';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
@@ -40,11 +40,28 @@ export const getRefundStatusHistory = async (taxFileId: string): Promise<TaxProc
   }
 };
 
+export const getActionGuidance = async (taxFileId: string, userContext?: any): Promise<ActionGuidance> => {
+  try {
+    const response = await api.post<ActionGuidance>(
+      `/refund-status/${taxFileId}/action-guidance`,
+      { userContext }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching action guidance:', error);
+    if (error.response && error.response.data && error.response.data.error) {
+      throw new Error(error.response.data.error);
+    } else {
+      throw new Error(error.message || 'Failed to fetch action guidance');
+    }
+  }
+};
 
 const apiService = {
   getTaxFilings,
   getRefundStatus,
   getRefundStatusHistory,
+  getActionGuidance,
 };
 
 export default apiService;

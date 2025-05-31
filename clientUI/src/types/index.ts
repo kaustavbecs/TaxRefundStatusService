@@ -60,6 +60,14 @@ export interface RefundStatus {
 // Status types
 export type StatusType = 'Submitted' | 'Processing' | 'Needs Action' | 'Approved';
 
+// Action Guidance type
+export interface ActionGuidance {
+  explanation: string;
+  steps: string[];
+  estimatedResolutionDays: number;
+  resources: string[];
+}
+
 // API response types
 export interface ApiResponse<T> {
   data: T;

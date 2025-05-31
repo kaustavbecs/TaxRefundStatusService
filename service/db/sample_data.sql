@@ -44,7 +44,7 @@ INSERT INTO TaxProcessingEvents (EventID, TaxFileID, OldStatus, NewStatus, Statu
 -- Needs Action case
 ('event-006', 'taxfile-003', NULL, 'Submitted', 'Tax filing received', '2024-03-01 09:15:00', 'IRS', NULL, 'South Center'),
 ('event-007', 'taxfile-003', 'Submitted', 'Processing', 'Tax filing under review', '2024-03-05 11:30:00', 'IRS', NULL, 'South Center'),
-('event-008', 'taxfile-003', 'Processing', 'Needs Action', 'Additional information required', '2024-03-20 15:45:00', 'IRS', 'Please provide missing W-2 form', 'South Center'),
+('event-008', 'taxfile-003', 'Processing', 'Needs Action', 'Additional information required', '2024-03-20 15:45:00', 'IRS', 'DOC-W2-MISSING', 'South Center'),
 
 -- Submitted case
 ('event-009', 'taxfile-004', NULL, 'Submitted', 'Tax filing received', '2024-03-10 16:20:00', 'IRS', NULL, 'Midwest Center'),
@@ -63,14 +63,14 @@ INSERT INTO TaxProcessingEvents (EventID, TaxFileID, OldStatus, NewStatus, Statu
 -- Complex processing path with multiple status changes
 ('event-016', 'taxfile-007', NULL, 'Submitted', 'Tax filing received', '2024-03-18 09:45:00', 'IRS', NULL, 'Midwest Center'),
 ('event-017', 'taxfile-007', 'Submitted', 'Processing', 'Tax filing under review', '2024-03-22 11:30:00', 'IRS', NULL, 'Midwest Center'),
-('event-018', 'taxfile-007', 'Processing', 'Needs Action', 'Missing documentation', '2024-03-30 14:15:00', 'IRS', 'Please provide missing 1099 form', 'Midwest Center'),
+('event-018', 'taxfile-007', 'Processing', 'Needs Action', 'Missing documentation', '2024-03-30 14:15:00', 'IRS', 'DOC-1099-MISSING', 'Midwest Center'),
 ('event-019', 'taxfile-007', 'Needs Action', 'Processing', 'Documentation received, continuing review', '2024-04-05 10:20:00', 'IRS', NULL, 'Midwest Center'),
 ('event-020', 'taxfile-007', 'Processing', 'Approved', 'Refund approved after review', '2024-04-15 16:45:00', 'IRS', NULL, 'Midwest Center'),
 
 -- Complex case with verification
 ('event-021', 'taxfile-008', NULL, 'Submitted', 'Tax filing received', '2024-03-22 13:20:00', 'IRS', NULL, 'Northeast Center'),
 ('event-022', 'taxfile-008', 'Submitted', 'Processing', 'Tax filing under review', '2024-03-25 09:10:00', 'IRS', NULL, 'Northeast Center'),
-('event-023', 'taxfile-008', 'Processing', 'Needs Action', 'Verification required', '2024-04-02 11:30:00', 'IRS', 'Please verify rental income details', 'Northeast Center'),
+('event-023', 'taxfile-008', 'Processing', 'Needs Action', 'Verification required', '2024-04-02 11:30:00', 'IRS', 'FOREIGN-INCOME', 'Northeast Center'),
 ('event-024', 'taxfile-008', 'Needs Action', 'Processing', 'Verification received, continuing review', '2024-04-10 14:25:00', 'IRS', NULL, 'Northeast Center'),
 
 -- Simple processing case
@@ -80,11 +80,11 @@ INSERT INTO TaxProcessingEvents (EventID, TaxFileID, OldStatus, NewStatus, Statu
 -- Complex business case
 ('event-027', 'taxfile-010', NULL, 'Submitted', 'Tax filing received', '2024-03-28 10:30:00', 'IRS', NULL, 'West Center'),
 ('event-028', 'taxfile-010', 'Submitted', 'Processing', 'Tax filing under review', '2024-04-01 13:15:00', 'IRS', NULL, 'West Center'),
-('event-029', 'taxfile-010', 'Processing', 'Needs Action', 'Business documentation required', '2024-04-08 15:30:00', 'IRS', 'Please provide business expense receipts', 'West Center'),
+('event-029', 'taxfile-010', 'Processing', 'Needs Action', 'Business documentation required', '2024-04-08 15:30:00', 'IRS', 'SELF-EMP-VERIFY', 'West Center'),
 
 -- Additional Processing to Needs Action transitions with varied characteristics
 ('event-030', 'taxfile-004', 'Submitted', 'Processing', 'Tax filing under review', '2024-03-15 09:30:00', 'IRS', NULL, 'Midwest Center'),
-('event-031', 'taxfile-004', 'Processing', 'Needs Action', 'Income verification required', '2024-03-25 14:20:00', 'IRS', 'Please provide additional income documentation', 'Midwest Center'),
+('event-031', 'taxfile-004', 'Processing', 'Needs Action', 'Income verification required', '2024-03-25 14:20:00', 'IRS', 'ID-VERIFY', 'Midwest Center'),
 
 -- Fast Processing to Approved transition (short processing time)
 ('event-032', 'taxfile-009', 'Processing', 'Approved', 'Refund approved - simple case', '2024-04-02 11:15:00', 'IRS', NULL, 'South Center'),
@@ -93,7 +93,7 @@ INSERT INTO TaxProcessingEvents (EventID, TaxFileID, OldStatus, NewStatus, Statu
 ('event-033', 'taxfile-008', 'Processing', 'Approved', 'Refund approved after detailed review', '2024-04-25 16:30:00', 'IRS', NULL, 'Northeast Center'),
 
 -- Processing to Needs Action with complex tax situation
-('event-034', 'taxfile-002', 'Processing', 'Needs Action', 'Deduction clarification needed', '2024-03-10 13:45:00', 'IRS', 'Please provide receipts for student loan interest deductions', 'West Center'),
+('event-034', 'taxfile-002', 'Processing', 'Needs Action', 'Deduction clarification needed', '2024-03-10 13:45:00', 'IRS', 'AUDIT-DEDUCT', 'West Center'),
 ('event-035', 'taxfile-002', 'Needs Action', 'Processing', 'Documentation received, continuing review', '2024-03-20 10:30:00', 'IRS', NULL, 'West Center'),
 ('event-036', 'taxfile-002', 'Processing', 'Approved', 'Refund approved after verification', '2024-04-05 15:20:00', 'IRS', NULL, 'West Center');
 
@@ -110,9 +110,17 @@ INSERT INTO TaxProcessingEvents (EventID, TaxFileID, OldStatus, NewStatus, Statu
 
 ('event-043', 'taxfile-014', NULL, 'Submitted', 'Tax filing received', '2024-05-18 16:20:00', 'IRS', NULL, 'Midwest Center'),
 ('event-044', 'taxfile-014', 'Submitted', 'Processing', 'Tax filing under review', '2024-05-22 10:15:00', 'IRS', NULL, 'Midwest Center'),
+('event-047', 'taxfile-014', 'Processing', 'Needs Action', 'Health insurance verification needed', '2024-05-25 11:30:00', 'IRS', 'HEALTH-INS-VERIFY', 'Midwest Center'),
 
 ('event-045', 'taxfile-015', NULL, 'Submitted', 'Tax filing received', '2024-05-20 10:05:00', 'IRS', NULL, 'West Center'),
-('event-046', 'taxfile-015', 'Submitted', 'Processing', 'Tax filing under review', '2024-05-24 14:40:00', 'IRS', NULL, 'West Center');
+('event-046', 'taxfile-015', 'Submitted', 'Processing', 'Tax filing under review', '2024-05-24 14:40:00', 'IRS', NULL, 'West Center'),
+('event-048', 'taxfile-015', 'Processing', 'Needs Action', 'Child Tax Credit verification needed', '2024-05-27 09:15:00', 'IRS', 'CRED-CHILD-INELIG', 'West Center');
+
+-- Add a few more events with different action codes
+INSERT INTO TaxProcessingEvents (EventID, TaxFileID, OldStatus, NewStatus, StatusDetails, StatusUpdateDate, UpdateSource, ActionRequired, ProcessingCenter) VALUES
+('event-049', 'taxfile-011', 'Processing', 'Needs Action', 'Mathematical error detected', '2024-05-18 13:45:00', 'IRS', 'MATH-ERROR', 'Northeast Center'),
+('event-050', 'taxfile-012', 'Processing', 'Needs Action', 'Dependent claimed on multiple returns', '2024-05-20 10:30:00', 'IRS', 'DEP-CONFLICT', 'West Center'),
+('event-051', 'taxfile-013', 'Processing', 'Needs Action', 'Earned Income Credit eligibility issue', '2024-05-22 14:15:00', 'IRS', 'CRED-EIC-INELIG', 'South Center');
 
 -- Sample TaxRefundPredictions
 INSERT INTO TaxRefundPredictions (PredictionID, TaxFileID, ConfidenceScore, ModelVersion, PredictedAvailabilityDate, InputFeatures) VALUES

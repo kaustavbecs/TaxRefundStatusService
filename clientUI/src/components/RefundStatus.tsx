@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { RefundStatus as RefundStatusType, StatusType } from '../types';
-import { getRefundStatus } from '../services/api';
+import { RefundStatus as RefundStatusType, StatusType, ActionGuidance } from '../types';
+import { getRefundStatus, getActionGuidance } from '../services/api';
 
 const StatusContainer = styled.div`
   background-color: white;
@@ -132,6 +132,64 @@ const EstimationUnavailable = styled.div`
   }
 `;
 
+const ErrorMessage = styled.div`
+  background-color: #f8d7da;
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 20px;
+  border-left: 4px solid #dc3545;
+  
+  p {
+    margin: 0;
+    color: #721c24;
+  }
+`;
+
+const ActionGuidanceContainer = styled.div`
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid var(--warning-color);
+`;
+
+const ActionGuidanceHeader = styled.h3`
+  margin-top: 0;
+  color: var(--warning-color);
+`;
+
+const ActionGuidanceExplanation = styled.p`
+  margin-bottom: 20px;
+`;
+
+const ActionStepsList = styled.ul`
+  margin-bottom: 20px;
+  padding-left: 20px;
+`;
+
+const ActionStep = styled.li`
+  margin-bottom: 10px;
+`;
+
+const ResourcesList = styled.ul`
+  margin-top: 10px;
+  padding-left: 20px;
+`;
+
+const ResourceLink = styled.a`
+  color: var(--primary-color);
+  text-decoration: none;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const ResolutionTime = styled.p`
+  font-style: italic;
+  color: var(--secondary-color);
+`;
+
 interface RefundStatusProps {
   taxFileId: string;
 }
@@ -139,6 +197,9 @@ interface RefundStatusProps {
 const RefundStatus: React.FC<RefundStatusProps> = ({ taxFileId }) => {
   const [status, setStatus] = useState<RefundStatusType | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [actionGuidance, setActionGuidance] = useState<ActionGuidance | null>(null);
+  const [loadingGuidance, setLoadingGuidance] = useState<boolean>(false);
+  const [guidanceError, setGuidanceError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -290,7 +351,67 @@ const RefundStatus: React.FC<RefundStatusProps> = ({ taxFileId }) => {
               <DetailLabel>Action Required:</DetailLabel>
               <DetailValue>{status.actionRequired}</DetailValue>
             </DetailRow>
-            <ActionButton>Take Action</ActionButton>
+            <ActionButton
+              onClick={async () => {
+                if (actionGuidance) {
+                  setActionGuidance(null);
+                  setGuidanceError(null);
+                } else {
+                  setLoadingGuidance(true);
+                  setGuidanceError(null);
+                  try {
+                    const guidance = await getActionGuidance(taxFileId);
+                    setActionGuidance(guidance);
+                  } catch (error: any) {
+                    console.error('Error fetching action guidance:', error);
+                    setGuidanceError(error.message || 'Failed to fetch action guidance');
+                  } finally {
+                    setLoadingGuidance(false);
+                  }
+                }
+              }}
+            >
+              {actionGuidance ? 'Hide Details' : loadingGuidance ? 'Loading...' : 'View Details'}
+            </ActionButton>
+            
+            {actionGuidance && (
+              <ActionGuidanceContainer>
+                <ActionGuidanceHeader>Action Guidance</ActionGuidanceHeader>
+                <ActionGuidanceExplanation>{actionGuidance.explanation}</ActionGuidanceExplanation>
+                
+                <h4>Steps to Resolve:</h4>
+                <ActionStepsList>
+                  {actionGuidance.steps.map((step, index) => (
+                    <ActionStep key={index}>{step}</ActionStep>
+                  ))}
+                </ActionStepsList>
+                
+                <ResolutionTime>
+                  Estimated resolution time: {actionGuidance.estimatedResolutionDays} days
+                </ResolutionTime>
+                
+                {actionGuidance.resources.length > 0 && (
+                  <>
+                    <h4>Helpful Resources:</h4>
+                    <ResourcesList>
+                      {actionGuidance.resources.map((resource, index) => (
+                        <li key={index}>
+                          <ResourceLink href={resource} target="_blank" rel="noopener noreferrer">
+                            {resource}
+                          </ResourceLink>
+                        </li>
+                      ))}
+                    </ResourcesList>
+                  </>
+                )}
+              </ActionGuidanceContainer>
+            )}
+            
+            {guidanceError && (
+              <ErrorMessage>
+                <p><strong>Error:</strong> {guidanceError}</p>
+              </ErrorMessage>
+            )}
           </>
         )}
       </StatusDetails>

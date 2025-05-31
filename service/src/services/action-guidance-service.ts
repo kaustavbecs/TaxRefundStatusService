@@ -7,7 +7,6 @@ dotenv.config();
 
 // Knowledge Base configuration
 const KNOWLEDGE_BASE_ID = 'IXOCHFJZUZ';
-const KNOWLEDGE_BASE_NAME = 'knowledge-base-quick-start-kdyah';
 const MODEL_ID = 'anthropic.claude-3-sonnet-20240229-v1:0';
 const AWS_REGION = 'us-east-1';
 
@@ -34,6 +33,11 @@ class ActionGuidanceService {
    */
   async getActionGuidance(request: ActionGuidanceRequest): Promise<ActionGuidanceResponse> {
     try {
+      console.log(`[AWS] Action guidance request for action code: ${request.actionCode}`, {
+        taxFileId: request.taxFileId,
+        userContext: request.userContext || {}
+      });
+      
       // 1. Query the knowledge base for information about the action code
       const kbResults = await this.queryKnowledgeBase(request.actionCode);
       
@@ -44,9 +48,16 @@ class ActionGuidanceService {
         request.userContext
       );
       
+      console.log(`[AWS] Action guidance response for action code: ${request.actionCode}`, {
+        explanation: guidanceResponse.explanation.substring(0, 50) + '...',
+        steps: guidanceResponse.steps.length,
+        estimatedResolutionDays: guidanceResponse.estimatedResolutionDays,
+        resources: guidanceResponse.resources.length
+      });
+      
       return guidanceResponse;
     } catch (error: any) {
-      console.error('Error getting action guidance:', error);
+      console.error(`[AWS] Error getting action guidance for action code: ${request.actionCode}`, error);
       throw new Error('Failed to generate action guidance: ' + (error.message || 'Unknown error'));
     }
   }
@@ -56,7 +67,7 @@ class ActionGuidanceService {
    */
   private async queryKnowledgeBase(actionCode: string): Promise<string[]> {
     try {
-      console.log(`Querying knowledge base for action code: ${actionCode}`);
+      console.log(`[AWS] Querying knowledge base for action code: ${actionCode}`);
       
       const client = new BedrockAgentRuntimeClient({ region: AWS_REGION });
       const command = new RetrieveCommand({
@@ -71,8 +82,22 @@ class ActionGuidanceService {
         }
       } as any);
       
+      console.log(`[AWS] Knowledge base request:`, {
+        knowledgeBaseId: KNOWLEDGE_BASE_ID,
+        query: `Action code: ${actionCode}`,
+        numberOfResults: 5
+      });
+      
       const response = await client.send(command);
-      console.log("Knowledge base response:", JSON.stringify(response.retrievalResults, null, 2));
+      
+      console.log(`[AWS] Knowledge base response for action code: ${actionCode}`, {
+        resultCount: response.retrievalResults?.length || 0,
+        results: response.retrievalResults?.map(result => ({
+          score: result.score,
+          location: result.location,
+          contentPreview: result.content?.text ? result.content.text.substring(0, 100) + '...' : 'No content'
+        }))
+      });
       
       // Extract text content from results
       if (!response.retrievalResults || response.retrievalResults.length === 0) {
@@ -90,9 +115,11 @@ class ActionGuidanceService {
         throw new Error("No text content found in knowledge base results");
       }
       
+      console.log(`[AWS] Knowledge base extracted ${textResults.length} text results for action code: ${actionCode}`);
+      
       return textResults;
     } catch (error: any) {
-      console.error('Error querying knowledge base:', error);
+      console.error(`[AWS] Error querying knowledge base for action code: ${actionCode}:`, error);
       throw new Error('Failed to query knowledge base: ' + (error.message || 'Unknown error'));
     }
   }
@@ -106,10 +133,16 @@ class ActionGuidanceService {
     userContext?: any
   ): Promise<ActionGuidanceResponse> {
     try {
-      console.log(`Generating personalized guidance for action code: ${actionCode}`);
+      console.log(`[AWS] Generating personalized guidance for action code: ${actionCode}`);
       
       const client = new BedrockRuntimeClient({ region: AWS_REGION });
       const prompt = this.buildPrompt(actionCode, knowledgeBaseInfo, userContext);
+      
+      console.log(`[AWS] LLM request for action code: ${actionCode}`, {
+        modelId: MODEL_ID,
+        promptLength: prompt.length,
+        userContextProvided: !!userContext
+      });
       
       const command = new InvokeModelCommand({
         modelId: MODEL_ID,
@@ -128,6 +161,11 @@ class ActionGuidanceService {
       const response = await client.send(command);
       const responseBody = JSON.parse(new TextDecoder().decode(response.body as any));
       
+      console.log(`[AWS] LLM response received for action code: ${actionCode}`, {
+        responseReceived: !!responseBody,
+        hasContent: !!(responseBody?.content?.length)
+      });
+      
       if (!responseBody || !responseBody.content || !responseBody.content.length) {
         throw new Error("Invalid response from LLM");
       }
@@ -136,10 +174,21 @@ class ActionGuidanceService {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       
       if (!jsonMatch) {
+        console.error(`[AWS] Failed to extract JSON from LLM response for action code: ${actionCode}`, {
+          contentLength: content.length,
+          contentPreview: content.substring(0, 100) + '...'
+        });
         throw new Error("Could not extract JSON from LLM response");
       }
       
       const jsonResponse = JSON.parse(jsonMatch[0]);
+      
+      console.log(`[AWS] Parsed JSON response for action code: ${actionCode}`, {
+        hasExplanation: !!jsonResponse.explanation,
+        stepsCount: jsonResponse.steps?.length || 0,
+        hasEstimatedDays: !!jsonResponse.estimatedResolutionDays,
+        resourcesCount: jsonResponse.resources?.length || 0
+      });
       
       if (!jsonResponse.explanation || !jsonResponse.steps || !jsonResponse.estimatedResolutionDays || !jsonResponse.resources) {
         throw new Error("LLM response missing required fields");
@@ -152,7 +201,7 @@ class ActionGuidanceService {
         resources: jsonResponse.resources
       };
     } catch (error: any) {
-      console.error('Error generating personalized guidance:', error);
+      console.error(`[AWS] Error generating personalized guidance for action code: ${actionCode}:`, error);
       throw new Error('Failed to generate personalized guidance: ' + (error.message || 'Unknown error'));
     }
   }

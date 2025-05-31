@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const refund_status_service_1 = __importDefault(require("../services/refund-status-service"));
+const action_guidance_service_1 = __importDefault(require("../services/action-guidance-service"));
 const db_service_1 = __importDefault(require("../db/db-service"));
 class RefundStatusController {
     /**
@@ -72,6 +73,50 @@ class RefundStatusController {
             console.error('Error in getTaxFilings controller:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
+    }
+    /**
+     * Get action guidance for a tax filing with "Needs Action" status
+     * POST /api/refund-status/:taxFileId/action-guidance
+     */
+    async getActionGuidance(req, res) {
+        try {
+            const { taxFileId } = req.params;
+            const { userContext } = req.body;
+            if (!taxFileId) {
+                res.status(400).json({ error: 'Tax file ID is required' });
+                return;
+            }
+            // Get the refund status to verify it's "Needs Action"
+            const status = await refund_status_service_1.default.getRefundStatus(taxFileId);
+            if (!status) {
+                res.status(404).json({ error: 'Tax filing not found' });
+                return;
+            }
+            if (status.status !== 'Needs Action' || !status.actionRequired) {
+                res.status(400).json({
+                    error: 'This tax filing does not require action or has no action code'
+                });
+                return;
+            }
+            // Get action guidance from the service
+            const actionGuidance = await action_guidance_service_1.default.getActionGuidance({
+                actionCode: status.actionRequired,
+                taxFileId,
+                userContext
+            });
+            res.status(200).json(actionGuidance);
+        }
+        catch (error) {
+            console.error('Error in getActionGuidance controller:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+    constructor() {
+        // Bind methods to ensure 'this' context is preserved
+        this.getRefundStatus = this.getRefundStatus.bind(this);
+        this.getRefundStatusHistory = this.getRefundStatusHistory.bind(this);
+        this.getTaxFilings = this.getTaxFilings.bind(this);
+        this.getActionGuidance = this.getActionGuidance.bind(this);
     }
 }
 exports.default = new RefundStatusController();

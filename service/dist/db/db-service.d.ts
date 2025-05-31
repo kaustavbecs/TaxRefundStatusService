@@ -36,7 +36,6 @@ export interface TaxRefundPrediction {
     InputFeatures: string;
     CreatedAt: string;
 }
-// No legacy interfaces needed
 export interface RefundStatus {
     status: string;
     details: string | null;

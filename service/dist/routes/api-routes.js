@@ -9,6 +9,7 @@ const router = (0, express_1.Router)();
 // Tax refund status routes
 router.get('/refund-status/:taxFileId', refund_status_controller_1.default.getRefundStatus);
 router.get('/refund-status/:taxFileId/history', refund_status_controller_1.default.getRefundStatusHistory);
+router.post('/refund-status/:taxFileId/action-guidance', refund_status_controller_1.default.getActionGuidance);
 // User routes
 router.get('/users/:userId/tax-filings', refund_status_controller_1.default.getTaxFilings);
 exports.default = router;

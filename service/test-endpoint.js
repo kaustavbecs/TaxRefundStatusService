@@ -4,8 +4,8 @@ const testEndpoint = async () => {
   try {
     console.log('Testing action guidance endpoint...');
     
-    // Replace with a tax file ID that has "Needs Action" status
-    const taxFileId = 'taxfile-013';
+    // Use a tax file ID that has "Needs Action" status from our updated sample data
+    const taxFileId = 'taxfile-006'; // User-002's 2025 tax file with "Needs Action" status and DOC-W2-MISSING action code
     
     const response = await axios.post(
       `http://localhost:3001/api/refund-status/${taxFileId}/action-guidance`,

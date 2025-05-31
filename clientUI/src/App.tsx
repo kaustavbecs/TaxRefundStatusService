@@ -209,7 +209,7 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         <Route path="/user/:userId" element={<UserDashboard />} />
-        <Route path="/" element={<Navigate to="/user/1" replace />} />
+        <Route path="/" element={<Navigate to="/user/user-001" replace />} />
       </Routes>
     </Router>
   );
